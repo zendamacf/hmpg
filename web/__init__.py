@@ -9,6 +9,11 @@ app = Flask(__name__)
 app.secret_key = config.SECRETKEY
 
 
+@app.route('/ping')
+def ping():
+	return jsonify(ping='pong')
+
+
 @app.route('/image/refresh')
 def refresh_image() -> Response:
 	keywords = [
