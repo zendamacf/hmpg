@@ -1,2 +1,3 @@
 # hmpg
-Flask homepage website app pulling background images from Flickr.
+
+[![Build Status](https://travis-ci.com/zachdlang/hmpg.svg?branch=master)](https://travis-ci.com/zachdlang/hmpg)
