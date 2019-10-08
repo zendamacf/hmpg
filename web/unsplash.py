@@ -5,7 +5,7 @@ import json
 import requests
 
 # Local imports
-from web import config, geolocate
+from web import config
 
 
 class UnsplashException(Exception):
@@ -26,6 +26,25 @@ def _send_request(endpoint: str, params: dict) -> dict:
 	return json.loads(resp.text)
 
 
+def _format_image(raw: dict) -> dict:
+	return {
+		'id': raw['id'],
+		'urls': {
+			'full': raw['urls']['full'],
+			'regular': raw['urls']['regular']
+		},
+		'author': {
+			'name': '{} {}'.format(raw['user']['first_name'], raw['user']['last_name']),
+			'instagram': raw['user']['instagram_username']
+		},
+		'location': {
+			'name': raw['location']['name'],
+			'latitude': raw['location']['position']['latitude'],
+			'longitude': raw['location']['position']['longitude']
+		},
+	}
+
+
 def random(tags: list) -> dict:
 	params = {
 		'query': 'mountain',
@@ -37,23 +56,7 @@ def random(tags: list) -> dict:
 		params
 	)
 	for r in resp:
-		latitude = r['location']['position']['latitude']
-		longitude = r['location']['position']['longitude']
-		if latitude and longitude:
-			location = geolocate.locate(latitude, longitude)
-			if location:
-				return {
-					'id': r['id'],
-					'urls': {
-						'full': r['urls']['full'],
-						'regular': r['urls']['regular']
-					},
-					'author': {
-						'name': '{} {}'.format(r['user']['first_name'], r['user']['last_name']),
-						'instagram': r['user']['instagram_username']
-					},
-					'location': location
-				}
-				return r
+		if r['location']['position']['latitude']:
+			return _format_image(r)
 
 	raise UnsplashException('No images found with coordinates.')
