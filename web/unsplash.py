@@ -1,5 +1,6 @@
 # Standard library imports
 import json
+import random
 
 # Third party imports
 import requests
@@ -45,9 +46,9 @@ def _format_image(raw: dict) -> dict:
 	}
 
 
-def random(tags: list) -> dict:
+def get_random(tags: list) -> dict:
 	params = {
-		'query': 'mountain',
+		'query': random.choice(tags),
 		'orientation': 'landscape',
 		'count': 30
 	}
