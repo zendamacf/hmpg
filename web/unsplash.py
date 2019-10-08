@@ -8,6 +8,10 @@ import requests
 from web import config, geolocate
 
 
+class UnsplashException(Exception):
+	pass
+
+
 def _send_request(endpoint: str, params: dict) -> dict:
 	headers = {
 		'Accept-Version': 'v1',
@@ -40,7 +44,10 @@ def random(tags: list) -> dict:
 			if location:
 				return {
 					'id': r['id'],
-					'url': r['urls']['regular'],  # Use 'full' for larger resolution
+					'urls': {
+						'full': r['urls']['full'],
+						'regular': r['urls']['regular']
+					},
 					'author': {
 						'name': '{} {}'.format(r['user']['first_name'], r['user']['last_name']),
 						'instagram': r['user']['instagram_username']
@@ -48,3 +55,5 @@ def random(tags: list) -> dict:
 					'location': location
 				}
 				return r
+
+	raise UnsplashException('No images found with coordinates.')
