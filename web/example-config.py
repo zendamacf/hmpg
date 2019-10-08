@@ -1,3 +1,3 @@
-FLICKR_API_KEY = 'flickr_api_key'
+UNSPLASH_ACCESS_KEY = 'unsplash_access_key'
 
 SECRETKEY = 'secretkey'

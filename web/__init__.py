@@ -2,7 +2,7 @@
 from flask import Flask, Response, jsonify
 
 # Local imports
-from web import config, flickr
+from web import config, unsplash
 
 app = Flask(__name__)
 
@@ -21,7 +21,7 @@ def refresh_image() -> Response:
 		'city', 'sunset', 'flowers', 'snow',
 		'temple'
 	]
-	photo = flickr.search(keywords)
+	photo = unsplash.random(keywords)
 	return jsonify(**photo)
 
 
