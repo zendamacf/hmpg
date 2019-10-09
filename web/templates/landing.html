@@ -1,0 +1,42 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>HMPG</title>
+    <meta name="description" content="HMPG">
+    <meta name="author" content="Zach Lang">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://kit.fontawesome.com/1b9ead9675.js" crossorigin="anonymous"></script>
+  </head>
+
+  <body>
+    <div class="absolute background"></div>
+    <div class="absolute foreground">
+      <section class="middle">
+        <h1 class="time">
+          <span id="time-hoursminutes"></span>
+          <small id="time-ampm"></small>
+        </h1>
+      </section>
+
+      <section class="bottom-left">
+        <div class="location">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="name">{{ photo.location }}</span>
+        </div>
+        <div class="author">
+          <i class="fas fa-camera"></i>
+          <span class="name">Taken by {{ photo.author_name }}</span>
+        </div>
+      </section>
+    </div>
+
+    <input id="photourl" value="{{ photo.url }}" type="hidden">
+    <input id="mapurl" value="http://maps.google.com/?q={{ photo.latitude }},{{ photo.longitude }}" type="hidden">
+    <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
+  </body>
+</html>

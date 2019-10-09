@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+
+body { font-family: 'Lato', sans-serif; }
+small {	font-size: 35%; }
+
+.absolute {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.background {
+	height: 100%;
+	background-position: center center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-color: #464646;
+	z-index: 1;
+}
+
+.foreground {
+	color: white;
+	z-index: 2;
+}
+
+.foreground .middle {
+	display: block;
+	width: 100%;
+	position: absolute;
+	top: 50%;
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+	text-align: center;
+}
+
+.foreground .bottom-left {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+}
+
+.foreground .time {
+	font-size: 700%;
+	font-weight: 500;
+}
+
+.foreground .time #time-ampm {
+	margin-left: -25px;
+}
+
+.foreground .location {
+	margin-left: 15px;
+	margin-bottom: 5px;
+	cursor: pointer;
+}
+
+.foreground .author {
+	margin-left: 15px;
+	margin-bottom: 15px;
+	font-size: small;
+	font-style: italic;
+	cursor: pointer;
+}
+
+.foreground .location i, .foreground .author i {
+	width: 20px;
+}

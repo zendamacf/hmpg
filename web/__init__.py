@@ -1,5 +1,5 @@
 # Third party imports
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, render_template
 
 # Local imports
 from web import config, database, unsplash
@@ -22,7 +22,7 @@ def ping() -> Response:
 @app.route('/')
 def landing() -> Response:
 	photo = get_image()
-	return jsonify(**photo)
+	return render_template('landing.html', photo=photo)
 
 
 @app.route('/image/refresh')
