@@ -16,6 +16,12 @@
   <body>
     <div class="absolute background"></div>
     <div class="absolute foreground">
+      <section class="top">
+        <div class="refresh">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+      </section>
+
       <section class="middle">
         <div class="time">
           <span id="time-hoursminutes"></span>
@@ -58,8 +64,9 @@
       </section>
     </div>
 
-    <input id="photourl" value="{{ photo.url }}" type="hidden">
-    <input id="mapurl" value="http://maps.google.com/?q={{ photo.latitude }},{{ photo.longitude }}" type="hidden">
+    <input id="refresh-url" value="{{ url_for('refresh') }}" type="hidden">
+    <input id="photo-url" value="{{ photo.url }}" type="hidden">
+    <input id="map-url" value="http://maps.google.com/?q={{ photo.latitude }},{{ photo.longitude }}" type="hidden">
     <script src="{{ url_for('static', filename='js/landing.js') }}"></script>
   </body>
 </html>

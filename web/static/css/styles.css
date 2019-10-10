@@ -66,6 +66,13 @@ i { text-align: center; width: 20px; }
 	right: 0;
 }
 
+.foreground .refresh {
+	margin-left: 15px;
+	margin-top: 15px;
+	max-width: 20px;
+	cursor: pointer;
+}
+
 .foreground .quote {
 	text-align: center;
 	width: 50%;

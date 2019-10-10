@@ -1,6 +1,6 @@
 
 function getImage() {
-  return document.getElementById('photourl').value;
+  return document.getElementById('photo-url').value;
 }
 
 (function() {
@@ -38,7 +38,7 @@ function getImage() {
 
 (function() {
   const openMap = function() {
-    var link = document.getElementById('mapurl').value;
+    var link = document.getElementById('map-url').value;
     window.open(link, '_blank');
   };
 
@@ -52,4 +52,13 @@ function getImage() {
   };
 
   document.getElementsByClassName('credit')[0].addEventListener('click', openRepo);
+})();
+
+(function() {
+  const refresh = function() {
+    var link = document.getElementById('refresh-url').value;
+    window.location.href = link;
+  };
+
+  document.getElementsByClassName('refresh')[0].addEventListener('click', refresh);
 })();
