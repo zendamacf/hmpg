@@ -20,7 +20,7 @@ function getImage() {
       minutes: minutes,
       ampm: ampm
     };
-  }
+  };
 
   var parts = timeParts(new Date());
   document.getElementById('time-hoursminutes').textContent = parts.hours + ':' + parts.minutes;
@@ -31,7 +31,7 @@ function getImage() {
   const openImage = function() {
     var link = getImage();
     window.open(link, '_blank');
-  }
+  };
 
   document.getElementsByClassName('author')[0].addEventListener('click', openImage);
 })();
@@ -40,7 +40,16 @@ function getImage() {
   const openMap = function() {
     var link = document.getElementById('mapurl').value;
     window.open(link, '_blank');
-  }
+  };
 
   document.getElementsByClassName('location')[0].addEventListener('click', openMap);
+})();
+
+(function() {
+  const openRepo = function() {
+    var link = 'https://github.com/zachdlang/hmpg';
+    window.open(link, '_blank');
+  };
+
+  document.getElementsByClassName('credit')[0].addEventListener('click', openRepo);
 })();

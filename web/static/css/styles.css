@@ -2,6 +2,7 @@
 
 body { font-family: 'Lato', sans-serif; }
 small {	font-size: 35%; }
+i { width: 20px; }
 
 .absolute {
 	position: absolute;
@@ -101,6 +102,8 @@ small {	font-size: 35%; }
 	cursor: pointer;
 }
 
-.foreground .location i, .foreground .author i {
-	width: 20px;
+.foreground .credit {
+	margin-right: 15px;
+	margin-bottom: 15px;
+	cursor: pointer;
 }
