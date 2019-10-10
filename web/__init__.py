@@ -1,5 +1,7 @@
 # Third party imports
-from flask import Flask, Response, jsonify, render_template
+from flask import (
+	Flask, Response, jsonify, render_template, redirect, url_for
+)
 
 # Local imports
 from web import config, database, unsplash
@@ -34,7 +36,7 @@ def refresh_image() -> Response:
 	]
 	photo = unsplash.get_random(keywords)
 	store_image(photo)
-	return jsonify()
+	return redirect(url_for('landing'))
 
 
 def get_image() -> dict:
