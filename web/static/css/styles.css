@@ -68,6 +68,8 @@ i { width: 20px; }
 
 .foreground .quote {
 	text-align: center;
+	width: 50%;
+	margin: auto;
 }
 
 .foreground .quote-content {
