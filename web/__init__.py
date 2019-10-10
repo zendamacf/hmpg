@@ -4,7 +4,8 @@ from flask import (
 )
 
 # Local imports
-from web import config, database, unsplash
+from web import config, database
+from web.apis import unsplash
 
 app = Flask(__name__)
 
