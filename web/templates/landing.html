@@ -17,10 +17,20 @@
     <div class="absolute background"></div>
     <div class="absolute foreground">
       <section class="middle">
-        <h1 class="time">
+        <div class="time">
           <span id="time-hoursminutes"></span>
           <small id="time-ampm"></small>
-        </h1>
+        </div>
+
+        <div class="quote">
+          <div class="quote-content">
+            {{ quote.content }}
+          </div>
+
+          <div class="quote-author">
+            {{ quote.author_name }}
+          </div>
+        </div>
       </section>
 
       <section class="bottom-left">
@@ -28,6 +38,7 @@
           <i class="fas fa-map-marker-alt"></i>
           <span class="name">{{ photo.location }}</span>
         </div>
+
         <div class="author">
           <i class="fas fa-camera"></i>
           <span class="name">Taken by {{ photo.author_name }}</span>

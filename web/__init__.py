@@ -5,7 +5,7 @@ from flask import (
 
 # Local imports
 from web import config, database
-from web.apis import unsplash
+from web.apis import unsplash, quotable
 
 app = Flask(__name__)
 
@@ -25,10 +25,18 @@ def ping() -> Response:
 @app.route('/')
 def landing() -> Response:
 	photo = get_image()
-	return render_template('landing.html', photo=photo)
+	quote = get_quote()
+	return render_template('landing.html', photo=photo, quote=quote)
 
 
-@app.route('/image/refresh')
+@app.route('/refresh')
+def refresh() -> Response:
+	refresh_image()
+	refresh_quote()
+	return redirect(url_for('landing'))
+
+
+@app.route('/refresh/image')
 def refresh_image() -> Response:
 	keywords = [
 		'landscape', 'water', 'aerial', 'places',
@@ -37,6 +45,13 @@ def refresh_image() -> Response:
 	]
 	photo = unsplash.get_random(keywords)
 	store_image(photo)
+	return redirect(url_for('landing'))
+
+
+@app.route('/refresh/quote')
+def refresh_quote() -> Response:
+	quote = quotable.get_random()
+	store_quote(quote)
 	return redirect(url_for('landing'))
 
 
@@ -53,7 +68,19 @@ def get_image() -> dict:
 	return resp[0]
 
 
-def store_image(photo: dict) -> None:
+def get_quote() -> dict:
+	resp = database.query(
+		"""
+		SELECT
+			quotableid, content, author_name
+		FROM quote
+		ORDER BY id DESC LIMIT 1
+		"""
+	)
+	return resp[0]
+
+
+def store_image(image: dict) -> None:
 	database.query(
 		"""
 		INSERT INTO image (
@@ -65,13 +92,30 @@ def store_image(photo: dict) -> None:
 		)
 		""",
 		(
-			photo['id'],
-			photo['location']['latitude'],
-			photo['location']['longitude'],
-			photo['location']['name'],
-			photo['author']['name'],
-			photo['author']['instagram'],
-			photo['urls']['full']
+			image['id'],
+			image['location']['latitude'],
+			image['location']['longitude'],
+			image['location']['name'],
+			image['author']['name'],
+			image['author']['instagram'],
+			image['urls']['full']
+		)
+	)
+
+
+def store_quote(quote: dict) -> None:
+	database.query(
+		"""
+		INSERT INTO quote (
+			quotableid, content, author_name
+		) VALUES (
+			?, ?, ?
+		)
+		""",
+		(
+			quote['id'],
+			quote['content'],
+			quote['author_name']
 		)
 	)
 

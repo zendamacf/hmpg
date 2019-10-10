@@ -27,7 +27,7 @@ def _send_request(endpoint: str, params: dict) -> dict:
 	return json.loads(resp.text)
 
 
-def _format_image(raw: dict) -> dict:
+def _format(raw: dict) -> dict:
 	return {
 		'id': raw['id'],
 		'urls': {
@@ -58,6 +58,6 @@ def get_random(tags: list) -> dict:
 	)
 	for r in resp:
 		if r['location']['position']['latitude']:
-			return _format_image(r)
+			return _format(r)
 
 	raise UnsplashException('No images found with coordinates.')
