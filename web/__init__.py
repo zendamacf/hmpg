@@ -5,7 +5,7 @@ from flask import (
 
 # Local imports
 from web import config, database
-from web.apis import unsplash, quotable
+from web.apis import unsplash, fishbulb
 
 app = Flask(__name__)
 
@@ -32,7 +32,6 @@ def landing() -> Response:
 @app.route('/refresh')
 def refresh() -> Response:
 	refresh_image()
-	refresh_quote()
 	return redirect(url_for('landing'))
 
 
@@ -45,13 +44,6 @@ def refresh_image() -> Response:
 	]
 	photo = unsplash.get_random(keywords)
 	store_image(photo)
-	return redirect(url_for('landing'))
-
-
-@app.route('/refresh/quote')
-def refresh_quote() -> Response:
-	quote = quotable.get_random()
-	store_quote(quote)
 	return redirect(url_for('landing'))
 
 
@@ -69,15 +61,7 @@ def get_image() -> dict:
 
 
 def get_quote() -> dict:
-	resp = database.query(
-		"""
-		SELECT
-			quotableid, content, author_name
-		FROM quote
-		ORDER BY id DESC LIMIT 1
-		"""
-	)
-	return resp[0]
+	return fishbulb.get_random()
 
 
 def store_image(image: dict) -> None:
@@ -99,23 +83,6 @@ def store_image(image: dict) -> None:
 			image['author']['name'],
 			image['author']['instagram'],
 			image['urls']['full']
-		)
-	)
-
-
-def store_quote(quote: dict) -> None:
-	database.query(
-		"""
-		INSERT INTO quote (
-			quotableid, content, author_name
-		) VALUES (
-			?, ?, ?
-		)
-		""",
-		(
-			quote['id'],
-			quote['content'],
-			quote['author_name']
 		)
 	)
 

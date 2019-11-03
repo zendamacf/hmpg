@@ -5,13 +5,13 @@ import json
 import requests
 
 
-class QuotableException(Exception):
+class FishbulbException(Exception):
 	pass
 
 
-def _send_request(endpoint: str) -> dict:
+def _send_request() -> dict:
 	resp = requests.get(
-		'https://api.quotable.io{}'.format(endpoint)
+		'https://fishbulb.kalopsia.dev/'
 	)
 	resp.raise_for_status()
 	return json.loads(resp.text)
@@ -19,13 +19,13 @@ def _send_request(endpoint: str) -> dict:
 
 def _format(raw: dict) -> dict:
 	return {
-		'id': raw['_id'],
+		'category': raw['category'],
 		'content': raw['content'],
-		'author_name': raw['author']
+		'author_name': raw['author_name']
 	}
 
 
 def get_random():
-	resp = _send_request('/random')
+	resp = _send_request()
 
 	return _format(resp)
