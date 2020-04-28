@@ -47,7 +47,7 @@ function getImage() {
 
 (function() {
   const openRepo = function() {
-    var link = 'https://github.com/zachdlang/hmpg';
+    var link = 'https://github.com/zendamacf/hmpg';
     window.open(link, '_blank');
   };
 
