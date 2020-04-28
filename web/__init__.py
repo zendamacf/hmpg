@@ -10,7 +10,6 @@ from web import config, database
 from web.apis import unsplash, fishbulb
 
 if not hasattr(config, 'TESTMODE'):
-	print('ENABLINGSENTRY', config.SENTRY_DSN)
 	sentry_sdk.init(
 		dsn=config.SENTRY_DSN,
 		integrations=[
