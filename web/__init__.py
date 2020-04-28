@@ -2,10 +2,21 @@
 from flask import (
 	Flask, Response, jsonify, render_template, redirect, url_for
 )
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
 
 # Local imports
 from web import config, database
 from web.apis import unsplash, fishbulb
+
+if not hasattr(config, 'TESTMODE'):
+	print('ENABLINGSENTRY', config.SENTRY_DSN)
+	sentry_sdk.init(
+		dsn=config.SENTRY_DSN,
+		integrations=[
+			FlaskIntegration(),
+		]
+	)
 
 app = Flask(__name__)
 
