@@ -1,7 +1,7 @@
 # Third party imports
 from flask import (
 	Flask, Response, jsonify, render_template, redirect, url_for,
-	got_request_exception
+	got_request_exception, request
 )
 import rollbar
 import rollbar.contrib.flask
@@ -18,7 +18,9 @@ app.secret_key = config.SECRETKEY
 @app.before_first_request
 def init_rollbar():
 	if not hasattr(config, 'TESTMODE'):
-		env = 'production' if not hasattr(config, 'TESTMODE') else 'development'
+		env = 'production'
+		if request.remote_address == '127.0.0.1':
+			env = 'development'
 		rollbar.init(
 			config.ROLLBAR_TOKEN,
 			environment=env
