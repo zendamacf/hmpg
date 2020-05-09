@@ -19,7 +19,7 @@ app.secret_key = config.SECRETKEY
 def init_rollbar():
 	if not hasattr(config, 'TESTMODE'):
 		env = 'production'
-		if request.remote_address == '127.0.0.1':
+		if request.remote_addr == '127.0.0.1':
 			env = 'development'
 		rollbar.init(
 			config.ROLLBAR_TOKEN,
