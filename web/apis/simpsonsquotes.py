@@ -9,9 +9,9 @@ class FishbulbException(Exception):
 	pass
 
 
-def _send_request() -> dict:
+def _send_request(endpoint: str) -> dict:
 	resp = requests.get(
-		'https://fishbulb.kalopsia.dev/'
+		f'https://thesimpsonsquoteapi.glitch.me/{endpoint}'
 	)
 	resp.raise_for_status()
 	return json.loads(resp.text)
@@ -19,13 +19,12 @@ def _send_request() -> dict:
 
 def _format(raw: dict) -> dict:
 	return {
-		'category': raw['category'],
-		'content': raw['content'],
-		'author_name': raw['author_name']
+		'content': raw['quote'],
+		'author_name': raw['character']
 	}
 
 
 def get_random():
-	resp = _send_request()
+	resp = _send_request('quotes')[0]
 
 	return _format(resp)
