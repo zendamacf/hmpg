@@ -12,6 +12,14 @@ class DatabaseException(Exception):
 	pass
 
 
+class NoDatabaseFound(DatabaseException):
+	pass
+
+
+class QueryError(DatabaseException):
+	pass
+
+
 def _dict_factory(cursor, row):
 	return dict(
 		(cursor.description[index][0], value)
@@ -26,7 +34,7 @@ def _connect() -> sqlite3.Connection:
 		if os.path.isfile(DATABASE):
 			db = g._database = sqlite3.connect(DATABASE)
 		else:
-			raise DatabaseException('Unable to find database.')
+			raise NoDatabaseFound
 	db.row_factory = _dict_factory
 	return db
 
@@ -47,8 +55,8 @@ def query(qry: str, qargs: tuple = None) -> list:
 		)
 		conn.commit()
 		resp = cursor.fetchall()
-	except sqlite3.DatabaseError:
+	except sqlite3.DatabaseError as e:
 		conn.rollback()
-		raise
+		raise QueryError from e
 	cursor.close()
 	return resp

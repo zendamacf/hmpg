@@ -61,7 +61,11 @@ def refresh_image() -> Response:
 		'temple', 'mountain', 'wanderlust'
 	]
 	photo = unsplash.get_random(keywords)
-	store_image(photo)
+	try:
+		store_image(photo)
+	except database.QueryError:
+		# Ignore unique constraint failures
+		pass
 	return redirect(url_for('landing'))
 
 
