@@ -28,6 +28,7 @@
           <small id="time-ampm"></small>
         </div>
 
+        {% if quote -%}
         <div class="quote">
           <div class="quote-content">
             {{ quote.content }}
@@ -37,6 +38,7 @@
             {{ quote.author_name }}
           </div>
         </div>
+        {%- endif %}
       </section>
 
       <section class="bottom-left">

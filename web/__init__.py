@@ -43,8 +43,10 @@ def ping() -> Response:
 @app.route('/')
 def landing() -> Response:
 	photo = get_image()
+	# Simpsons quote API is down
 	# quote = get_quote()
-	return render_template('landing.html', photo=photo, quote=quote)
+	# return render_template('landing.html', photo=photo, quote=quote)
+	return render_template('landing.html', photo=photo)
 
 
 @app.route('/refresh')
