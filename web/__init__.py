@@ -43,7 +43,7 @@ def ping() -> Response:
 @app.route('/')
 def landing() -> Response:
 	photo = get_image()
-	quote = get_quote()
+	# quote = get_quote()
 	return render_template('landing.html', photo=photo, quote=quote)
 
 
