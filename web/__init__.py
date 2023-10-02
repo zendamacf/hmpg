@@ -76,7 +76,7 @@ def get_image() -> dict:
 			unsplashid, latitude, longitude, location,
 			author_name, author_instagram, url
 		FROM image
-		ORDER BY id DESC LIMIT 1
+		ORDER BY RANDOM() LIMIT 1
 		"""
 	)
 	return resp[0]
