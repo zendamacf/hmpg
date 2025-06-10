@@ -1,6 +1,2 @@
-web/__pycache__/*
-web/apis/__pycache__/*
-tests/__pycache__/*
-web/config.py
-hmpg.db
-.venv
+# SQLite
+*.db
