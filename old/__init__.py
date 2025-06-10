@@ -8,7 +8,7 @@ import rollbar.contrib.flask
 
 # Local imports
 from web import config, database
-from web.apis import unsplash, simpsonsquotes
+from web.apis import unsplash
 
 app = Flask(__name__)
 
@@ -80,10 +80,6 @@ def get_image() -> dict:
 		"""
 	)
 	return resp[0]
-
-
-def get_quote() -> dict:
-	return simpsonsquotes.get_random()
 
 
 def store_image(image: dict) -> None:
