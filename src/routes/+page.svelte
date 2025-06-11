@@ -23,9 +23,11 @@
 <div class="absolute foreground">
   <section class="top">
     <button
-      class="refresh"
+      class="refresh color-in"
       aria-label="Refresh image"
       onclick={async () => {
+        // Start icon spinning
+        document.querySelector('.refresh i')?.classList.add('fa-spin');
         await fetch('/refresh');
         window.location.reload();
       }}
@@ -42,29 +44,34 @@
   </section>
 
   <section class="bottom-left">
-    <a
-      class="location"
-      href={`http://maps.google.com/?q=${data.latitude},${data.longitude}`}
-      target="_blank"
+    <button
+      class="location highlight"
+      onclick={() =>
+        window.open(`http://maps.google.com/?q=${data.latitude},${data.longitude}`, '_blank')}
     >
       <i class="fas fa-map-marker-alt"></i>
+      &nbsp;
       <span class="name">{data.location}</span>
-    </a>
+    </button>
 
-    <a class="author" href={data.url} target="_blank">
+    <button class="author highlight" onclick={() => window.open(data.url ?? '', '_blank')}>
       <i class="fas fa-camera"></i>
+      &nbsp;
       <span class="name">Taken by {data.author_name} on Unsplash</span>
-    </a>
+    </button>
   </section>
 
   <section class="bottom-right">
-    <a class="credit" href="https://github.com/zendamacf/hmpg" target="_blank">
+    <button
+      class="credit"
+      onclick={() => window.open('https://github.com/zendamacf/hmpg', '_blank')}
+    >
       <span class="credit-label"> By Zach Lang </span>
-
+      &nbsp;
       <span class="credit-icon">
         <i class="fab fa-github"></i>
       </span>
-    </a>
+    </button>
   </section>
 </div>
 
@@ -78,11 +85,8 @@
   }
   i {
     text-align: center;
+    font-size: 1.2em;
     width: 20px !important;
-  }
-  a {
-    text-decoration: none;
-    color: white;
   }
   button {
     background: none;
@@ -91,6 +95,23 @@
     padding: 0;
     cursor: pointer;
     color: white;
+
+    &.color-in {
+      transition: ease 0.4s;
+      &:hover {
+        color: #0b5563;
+      }
+    }
+
+    &.highlight {
+      box-shadow: inset 0 0 0 0 #0b5563;
+      padding: 0.25em;
+      border-radius: 0.25em;
+      transition: box-shadow 0.4s ease-in-out;
+      &:hover {
+        box-shadow: inset 500px 0 0 0 #0b5563;
+      }
+    }
   }
 
   .absolute {
@@ -182,7 +203,6 @@
 
       .credit-label {
         opacity: 0;
-        transition: ease-in-out all 0.4s;
       }
 
       &:hover .credit-label {
