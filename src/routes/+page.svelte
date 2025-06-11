@@ -6,17 +6,19 @@
   const timeParts = (d: Date) => {
     let hours = d.getHours();
     const minutes = `0${d.getMinutes()}`.slice(-2);
+    const seconds = `0${d.getSeconds()}`.slice(-2);
     const ampm = hours >= 12 ? 'pm' : 'am';
     hours = hours % 12;
     hours = hours ? hours : 12;
-    return {
-      hours: hours,
-      minutes: minutes,
-      ampm: ampm,
-    };
+    return { hours, minutes, seconds, ampm };
   };
 
-  const time = timeParts(new Date());
+  let time = $state(timeParts(new Date()));
+  const updateTime = () => {
+    time = timeParts(new Date());
+  };
+
+  setInterval(updateTime, 1000);
 </script>
 
 <div class="absolute background" style="--image-url: url({data.url})"></div>
@@ -38,7 +40,7 @@
 
   <section class="middle">
     <div class="time">
-      <span>{time.hours}:{time.minutes}</span>
+      <span>{time.hours}:{time.minutes}:{time.seconds}</span>
       <small class="time-ampm">{time.ampm}</small>
     </div>
   </section>
