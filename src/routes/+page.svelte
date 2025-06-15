@@ -65,11 +65,10 @@
 
   <section class="bottom-right">
     <button
-      class="credit"
+      class="credit color-in"
       onclick={() => window.open('https://github.com/zendamacf/hmpg', '_blank')}
+      aria-label="GitHub icon"
     >
-      <span class="credit-label"> By Zach Lang </span>
-      &nbsp;
       <span class="credit-icon">
         <i class="fab fa-github"></i>
       </span>
@@ -202,14 +201,6 @@
       transition: ease-in-out all 0.4s;
       margin-right: 1em;
       margin-bottom: 1em;
-
-      .credit-label {
-        opacity: 0;
-      }
-
-      &:hover .credit-label {
-        opacity: 1;
-      }
     }
   }
 </style>
