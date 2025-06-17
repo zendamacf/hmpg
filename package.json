@@ -24,7 +24,6 @@
     "@sveltejs/adapter-vercel": "^5.7.2",
     "@sveltejs/kit": "^2.16.0",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22",
     "drizzle-kit": "^0.30.2",
     "eslint": "^9.18.0",
@@ -40,8 +39,8 @@
     "vite": "^6.2.6"
   },
   "dependencies": {
-    "better-sqlite3": "^11.8.0",
-    "drizzle-orm": "^0.40.0",
+    "drizzle-orm": "^0.44.2",
+    "postgres": "^3.4.7",
     "unsplash-js": "^7.0.19"
   }
 }
