@@ -19,7 +19,7 @@ const KEYWORDS = [
 ];
 
 export const config: Config = {
-  runtime: 'nodejs23.x',
+  runtime: 'nodejs22.x',
 };
 
 export const GET: RequestHandler = async () => {

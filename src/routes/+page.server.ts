@@ -14,5 +14,5 @@ export const load: PageServerLoad = async () => {
 };
 
 export const config: Config = {
-  runtime: 'nodejs23.x',
+  runtime: 'nodejs22.x',
 };
