@@ -19,7 +19,7 @@ const KEYWORDS = [
 ];
 
 export const config: Config = {
-  runtime: 'edge',
+  runtime: 'nodejs23.x',
 };
 
 export const GET: RequestHandler = async () => {
