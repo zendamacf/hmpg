@@ -40,8 +40,9 @@
 
   <section class="middle">
     <div class="time">
-      <span>{time.hours}:{time.minutes}:{time.seconds}</span>
-      <small class="time-ampm">{time.ampm}</small>
+      <span>{time.hours}:{time.minutes}:{time.seconds}</span><small class="time-ampm"
+        >{time.ampm}</small
+      >
     </div>
   </section>
 
@@ -176,7 +177,7 @@
       font-weight: bold;
 
       .time-ampm {
-        margin-left: -25px;
+        margin-left: 10px;
       }
     }
 
