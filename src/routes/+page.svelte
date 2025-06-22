@@ -172,7 +172,7 @@
     }
 
     .time {
-      font-size: 12em;
+      font-size: clamp(2rem, 20vw, 12rem);
       font-weight: bold;
 
       .time-ampm {
