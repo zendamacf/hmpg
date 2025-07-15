@@ -25,14 +25,17 @@ export const config: Config = {
 export const GET: RequestHandler = async () => {
   const photo = await UnsplashAPI.getRandom(KEYWORDS);
 
-  await db.insert(image).values({
-    unsplashid: photo.id,
-    latitude: photo.location.latitude?.toString(),
-    longitude: photo.location.longitude?.toString(),
-    location: photo.location.name,
-    author_name: photo.author.name,
-    author_instagram: photo.author.instagram,
-    url: photo.urls.full,
-  });
+  await db
+    .insert(image)
+    .values({
+      unsplashid: photo.id,
+      latitude: photo.location.latitude?.toString(),
+      longitude: photo.location.longitude?.toString(),
+      location: photo.location.name,
+      author_name: photo.author.name,
+      author_instagram: photo.author.instagram,
+      url: photo.urls.full,
+    })
+    .onConflictDoNothing({ target: image.unsplashid });
   return new Response();
 };
