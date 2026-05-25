@@ -1,17 +1,8 @@
 <script lang="ts">
+import { timeParts } from '$lib/time';
 import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();
-
-const timeParts = (d: Date) => {
-  let hours = d.getHours();
-  const minutes = `0${d.getMinutes()}`.slice(-2);
-  const seconds = `0${d.getSeconds()}`.slice(-2);
-  const ampm = hours >= 12 ? 'pm' : 'am';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  return { hours, minutes, seconds, ampm };
-};
 
 let time = $state(timeParts(new Date()));
 const updateTime = () => {

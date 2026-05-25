@@ -74,4 +74,39 @@ describe('UnsplashAPI.getRandom', () => {
       'No images found with coordinates',
     );
   });
+
+  it('throws when the API returns a non-array response', async () => {
+    getRandom.mockResolvedValue({ response: photoWithCoords });
+
+    await expect(UnsplashAPI.getRandom(['city'])).rejects.toThrow(
+      'No images found with coordinates',
+    );
+  });
+
+  it('maps null location and instagram fields', async () => {
+    getRandom.mockResolvedValue({
+      response: [
+        {
+          ...photoWithCoords,
+          location: {
+            name: null,
+            position: { latitude: 1, longitude: 2 },
+          },
+          user: {
+            ...photoWithCoords.user,
+            instagram_username: null,
+          },
+        },
+      ],
+    });
+
+    const result = await UnsplashAPI.getRandom(['landscape']);
+
+    expect(result.location).toEqual({
+      name: null,
+      latitude: 1,
+      longitude: 2,
+    });
+    expect(result.author.instagram).toBeNull();
+  });
 });
