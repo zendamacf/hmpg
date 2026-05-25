@@ -17,12 +17,12 @@
     "test": "npm run prepare && vitest run",
     "test:coverage": "npm run prepare && vitest run --coverage",
     "typecheck": "tsc --noEmit",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@changesets/cli": "^2.31.0",
     "@sveltejs/adapter-vercel": "^6.3.2",
     "@sveltejs/kit": "^2.60.1",
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
