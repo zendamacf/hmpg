@@ -2,4 +2,4 @@
 "hmpg": patch
 ---
 
-Added initial test coverage using Vitest.
+Added app-wide test coverage using Vitest.

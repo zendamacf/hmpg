@@ -1,5 +1,6 @@
 import { sentrySvelteKit } from '@sentry/sveltekit';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -15,11 +16,12 @@ export default defineConfig({
           }),
         ]),
     sveltekit(),
+    svelteTesting(),
   ],
   test: {
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{js,ts}'],
-    exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+    setupFiles: ['./vitest-setup.ts'],
+    include: ['src/**/*.{test,spec,component.test}.{js,ts}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'json-summary'],
@@ -32,10 +34,10 @@ export default defineConfig({
         'src/lib/server/db/index.ts',
       ],
       thresholds: {
-        lines: 35,
-        statements: 40,
-        branches: 45,
-        functions: 45,
+        lines: 95,
+        statements: 90,
+        branches: 75,
+        functions: 95,
       },
     },
   },
