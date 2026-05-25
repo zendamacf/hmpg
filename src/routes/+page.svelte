@@ -1,24 +1,24 @@
 <script lang="ts">
-  import type { PageProps } from './$types';
+import type { PageProps } from './$types';
 
-  const { data }: PageProps = $props();
+const { data }: PageProps = $props();
 
-  const timeParts = (d: Date) => {
-    let hours = d.getHours();
-    const minutes = `0${d.getMinutes()}`.slice(-2);
-    const seconds = `0${d.getSeconds()}`.slice(-2);
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    hours = hours % 12;
-    hours = hours ? hours : 12;
-    return { hours, minutes, seconds, ampm };
-  };
+const timeParts = (d: Date) => {
+  let hours = d.getHours();
+  const minutes = `0${d.getMinutes()}`.slice(-2);
+  const seconds = `0${d.getSeconds()}`.slice(-2);
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  return { hours, minutes, seconds, ampm };
+};
 
-  let time = $state(timeParts(new Date()));
-  const updateTime = () => {
-    time = timeParts(new Date());
-  };
+let time = $state(timeParts(new Date()));
+const updateTime = () => {
+  time = timeParts(new Date());
+};
 
-  setInterval(updateTime, 1000);
+setInterval(updateTime, 1000);
 </script>
 
 <div class="absolute background" style="--image-url: url({data.url})"></div>

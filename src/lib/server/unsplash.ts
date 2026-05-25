@@ -1,5 +1,5 @@
-import { env } from '$env/dynamic/private';
 import { createApi } from 'unsplash-js';
+import { env } from '$env/dynamic/private';
 
 if (!env.UNSPLASH_ACCESS_KEY) throw new Error('UNSPLASH_ACCESS_KEY is not set');
 
