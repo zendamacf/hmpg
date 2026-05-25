@@ -57,6 +57,7 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}-tests
           api_key: ${{ secrets.NEON_API_KEY }}
+          database: hmpg
       
       - name: Set DATABASE_URL
         run: echo "DATABASE_URL=${{ steps.create-branch.outputs.db_url_pooled }}" >> $GITHUB_ENV
@@ -81,6 +82,7 @@ jobs:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           compare_branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}-tests
           api_key: ${{ secrets.NEON_API_KEY }}
+          database: hmpg
 
       - name: Test
         run: npm run test:coverage
