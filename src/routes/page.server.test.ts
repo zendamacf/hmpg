@@ -16,6 +16,8 @@ vi.mock('$lib/server/db', () => ({
 
 const { load } = await import('./+page.server');
 
+const loadEvent = {} as Parameters<typeof load>[0];
+
 describe('+page.server load', () => {
   beforeEach(() => {
     limit.mockReset();
@@ -34,13 +36,13 @@ describe('+page.server load', () => {
     };
     limit.mockResolvedValue([photo]);
 
-    await expect(load()).resolves.toEqual(photo);
+    await expect(load(loadEvent)).resolves.toEqual(photo);
     expect(limit).toHaveBeenCalledWith(1);
   });
 
   it('returns undefined when the database has no images', async () => {
     limit.mockResolvedValue([]);
 
-    await expect(load()).resolves.toBeUndefined();
+    await expect(load(loadEvent)).resolves.toBeUndefined();
   });
 });

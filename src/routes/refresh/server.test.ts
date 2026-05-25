@@ -20,6 +20,8 @@ insert.mockReturnValue({ values });
 
 const { GET } = await import('./+server');
 
+const requestEvent = {} as Parameters<typeof GET>[0];
+
 const unsplashPhoto = {
   id: 'photo-1',
   urls: {
@@ -44,7 +46,7 @@ describe('GET /refresh', () => {
   });
 
   it('fetches from Unsplash and inserts into the database', async () => {
-    const response = await GET();
+    const response = await GET(requestEvent);
 
     expect(getRandom).toHaveBeenCalledWith([
       'landscape',
@@ -78,7 +80,7 @@ describe('GET /refresh', () => {
       location: { name: null, latitude: null, longitude: null },
     });
 
-    await GET();
+    await GET(requestEvent);
 
     expect(values).toHaveBeenCalledWith(
       expect.objectContaining({
