@@ -1,7 +1,7 @@
 {
   "name": "hmpg",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "scripts": {
     "start": "node --env-file=.env build",
@@ -18,7 +18,9 @@
     "test:coverage": "npm run prepare && vitest run --coverage",
     "typecheck": "svelte-kit sync && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "changeset": "changeset",
+    "changeset:version": "changeset version"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
