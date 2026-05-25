@@ -16,7 +16,7 @@
     "lint:fix": "biome check --write .",
     "test": "npm run prepare && vitest run",
     "test:coverage": "npm run prepare && vitest run --coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "svelte-kit sync && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate"
   },
