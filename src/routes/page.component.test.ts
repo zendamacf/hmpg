@@ -3,16 +3,21 @@
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Page from './+page.svelte';
+import type { PageProps } from './$types';
 
-const pageData = {
-  id: 1,
-  url: 'https://example.com/photo.jpg',
-  latitude: '37.8651',
-  longitude: '-119.5383',
-  location: 'Yosemite',
-  author_name: 'Jane Doe',
-  author_instagram: 'janedoe',
-  unsplashid: 'photo-1',
+const pageProps: PageProps = {
+  params: {},
+  data: {
+    id: 1,
+    url: 'https://example.com/photo.jpg',
+    latitude: '37.8651',
+    longitude: '-119.5383',
+    location: 'Yosemite',
+    author_name: 'Jane Doe',
+    author_instagram: 'janedoe',
+    unsplashid: 'photo-1',
+  },
+  form: undefined,
 };
 
 describe('+page.svelte', () => {
@@ -41,7 +46,7 @@ describe('+page.svelte', () => {
   });
 
   it('renders the background image and photo metadata', () => {
-    const { container } = render(Page, { props: { data: pageData } });
+    const { container } = render(Page, { props: pageProps });
 
     const background = container.querySelector('.background');
     expect(background).toHaveStyle({ '--image-url': 'url(https://example.com/photo.jpg)' });
@@ -50,14 +55,14 @@ describe('+page.svelte', () => {
   });
 
   it('renders the clock from the current time', () => {
-    render(Page, { props: { data: pageData } });
+    render(Page, { props: pageProps });
 
     expect(screen.getByText('3:05:07')).toBeInTheDocument();
     expect(screen.getByText('pm')).toBeInTheDocument();
   });
 
   it('updates the clock every second', async () => {
-    render(Page, { props: { data: pageData } });
+    render(Page, { props: pageProps });
 
     expect(screen.getByText('3:05:07')).toBeInTheDocument();
 
@@ -67,7 +72,7 @@ describe('+page.svelte', () => {
   });
 
   it('opens Google Maps when the location button is clicked', async () => {
-    render(Page, { props: { data: pageData } });
+    render(Page, { props: pageProps });
 
     await screen.getByRole('button', { name: /Yosemite/i }).click();
 
@@ -75,7 +80,7 @@ describe('+page.svelte', () => {
   });
 
   it('opens the photo URL when the author button is clicked', async () => {
-    render(Page, { props: { data: pageData } });
+    render(Page, { props: pageProps });
 
     await screen.getByRole('button', { name: /Taken by Jane Doe/i }).click();
 
@@ -83,7 +88,7 @@ describe('+page.svelte', () => {
   });
 
   it('opens the GitHub repo when the credit button is clicked', async () => {
-    render(Page, { props: { data: pageData } });
+    render(Page, { props: pageProps });
 
     await screen.getByRole('button', { name: 'GitHub icon' }).click();
 
@@ -91,7 +96,7 @@ describe('+page.svelte', () => {
   });
 
   it('refreshes the image when the refresh button is clicked', async () => {
-    const { container } = render(Page, { props: { data: pageData } });
+    const { container } = render(Page, { props: pageProps });
 
     await screen.getByRole('button', { name: 'Refresh image' }).click();
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledWith('/refresh'));
