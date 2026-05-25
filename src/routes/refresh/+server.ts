@@ -1,7 +1,7 @@
+import type { Config } from '@sveltejs/adapter-vercel';
 import { db } from '$lib/server/db';
 import { image } from '$lib/server/db/schema';
 import { UnsplashAPI } from '$lib/server/unsplash';
-import type { Config } from '@sveltejs/adapter-vercel';
 import type { RequestHandler } from './$types';
 
 const KEYWORDS = [
