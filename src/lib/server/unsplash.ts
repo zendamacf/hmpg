@@ -24,10 +24,14 @@ interface UnsplashImage {
 
 const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
   const resp = (
-    await unsplash.photos.getRandom({
-      query: tags[Math.floor(Math.random() * tags.length)],
-      orientation: 'landscape',
-      count: 30,
+    await unsplash.GET('/photos/random', {
+      params: {
+        query: {
+          query: tags[Math.floor(Math.random() * tags.length)],
+          orientation: 'landscape',
+          count: 30,
+        },
+      },
     })
   ).response;
   const raw = Array.isArray(resp) ? resp.find((r) => r.location.position.latitude) : undefined;
