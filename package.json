@@ -30,7 +30,7 @@
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.3.1",
-    "@types/node": "^22",
+    "@types/node": "^25",
     "@vitest/coverage-v8": "^4.1.7",
     "drizzle-kit": "^0.31.1",
     "husky": "^9.1.7",
