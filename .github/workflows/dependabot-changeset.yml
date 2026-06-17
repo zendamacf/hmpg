@@ -1,0 +1,25 @@
+name: Dependabot Changeset
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  changeset:
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'dependencies')
+    permissions:
+      contents: write
+    steps:
+      - name: Add changeset
+        uses: mscharley/dependency-changesets-action@v1.2.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          use-conventional-commits: false
+          commit-message: "chore(deps): changeset for dependency update [skip dependabot]"
+          author-name: github-actions[bot]
+          author-email: github-actions[bot]@users.noreply.github.com
