@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getRandom = vi.fn();
+const unsplashGet = vi.fn();
 
 vi.mock('$env/dynamic/private', () => ({
   env: { UNSPLASH_ACCESS_KEY: 'test-key' },
@@ -8,7 +8,7 @@ vi.mock('$env/dynamic/private', () => ({
 
 vi.mock('unsplash-js', () => ({
   createApi: () => ({
-    photos: { getRandom },
+    GET: unsplashGet,
   }),
 }));
 
@@ -30,21 +30,23 @@ const photoWithCoords = {
 
 describe('UnsplashAPI.getRandom', () => {
   beforeEach(() => {
-    getRandom.mockReset();
+    unsplashGet.mockReset();
   });
 
   it('maps a photo that has coordinates', async () => {
-    getRandom.mockResolvedValue({ response: [photoWithCoords] });
+    unsplashGet.mockResolvedValue({ response: [photoWithCoords] });
 
     const result = await UnsplashAPI.getRandom(['landscape', 'mountain']);
 
-    expect(getRandom).toHaveBeenCalledWith(
-      expect.objectContaining({
-        orientation: 'landscape',
-        count: 30,
-        query: expect.stringMatching(/^(landscape|mountain)$/),
-      }),
-    );
+    expect(unsplashGet).toHaveBeenCalledWith('/photos/random', {
+      params: {
+        query: {
+          query: expect.stringMatching(/^(landscape|mountain)$/),
+          orientation: 'landscape',
+          count: 30,
+        },
+      },
+    });
     expect(result).toEqual({
       id: 'photo-1',
       urls: {
@@ -61,7 +63,7 @@ describe('UnsplashAPI.getRandom', () => {
   });
 
   it('throws when no photos have coordinates', async () => {
-    getRandom.mockResolvedValue({
+    unsplashGet.mockResolvedValue({
       response: [
         {
           ...photoWithCoords,
@@ -76,7 +78,7 @@ describe('UnsplashAPI.getRandom', () => {
   });
 
   it('throws when the API returns a non-array response', async () => {
-    getRandom.mockResolvedValue({ response: photoWithCoords });
+    unsplashGet.mockResolvedValue({ response: photoWithCoords });
 
     await expect(UnsplashAPI.getRandom(['city'])).rejects.toThrow(
       'No images found with coordinates',
@@ -84,7 +86,7 @@ describe('UnsplashAPI.getRandom', () => {
   });
 
   it('maps null location and instagram fields', async () => {
-    getRandom.mockResolvedValue({
+    unsplashGet.mockResolvedValue({
       response: [
         {
           ...photoWithCoords,
