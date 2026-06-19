@@ -32,7 +32,7 @@
     "@testing-library/svelte": "^5.3.1",
     "@types/node": "^25",
     "@vitest/coverage-v8": "^4.1.9",
-    "drizzle-kit": "^0.31.1",
+    "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.5",
