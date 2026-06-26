@@ -35,7 +35,7 @@
     "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
-    "lint-staged": "^17.0.5",
+    "lint-staged": "^17.0.8",
     "svelte": "^5.56.3",
     "svelte-check": "^4.0.0",
     "typescript": "^6.0.3",
