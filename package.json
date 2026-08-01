@@ -32,7 +32,6 @@
     "@testing-library/svelte": "^5.4.2",
     "@types/node": "^26",
     "@vitest/coverage-v8": "^4.1.10",
-    "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.8",
@@ -47,6 +46,7 @@
   },
   "dependencies": {
     "@sentry/sveltekit": "^10.63.0",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",
     "unsplash-js": "^8.0.0"

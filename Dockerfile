@@ -23,17 +23,18 @@ WORKDIR /app
 ENV NODE_ENV=production \
   HOST=0.0.0.0 \
   PORT=3000 \
-  HUSKY=0
+  HUSKY=0 \
+  HOME=/home/sveltekit
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends dumb-init \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs sveltekit
+  && useradd --system --uid 1001 --gid nodejs --create-home --home-dir /home/sveltekit sveltekit
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --engine-strict=false \
-  && npm install drizzle-kit --no-save --ignore-scripts --engine-strict=false
+  && chown -R sveltekit:nodejs /app
 
 COPY --from=build --chown=sveltekit:nodejs /app/build ./build
 COPY --from=build --chown=sveltekit:nodejs /app/drizzle ./drizzle
