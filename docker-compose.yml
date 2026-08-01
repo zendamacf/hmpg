@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: hmpg
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hmpg}
+      POSTGRES_DB: hmpg
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U hmpg -d hmpg']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/zendamacf/hmpg:latest}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://hmpg:${DB_PASSWORD:-hmpg}@postgres:5432/hmpg
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY}
+      PUBLIC_SENTRY_DSN: ${PUBLIC_SENTRY_DSN:-}
+      CRON_SECRET: ${CRON_SECRET}
+      ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
+      HOST: 0.0.0.0
+      PORT: 3000
+    expose:
+      - '3000'
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(\"http://127.0.0.1:3000/health\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  caddy:
+    image: caddy:2
+    profiles: ['production']
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+  cron:
+    image: alpine:3.20
+    profiles: ['production']
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+    volumes:
+      - ./docker/cron-refresh.sh:/usr/local/bin/cron-refresh.sh:ro
+      - ./docker/crontab:/etc/crontabs/root:ro
+    entrypoint: ['/bin/sh', '-c', 'crond -f -l 2']
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

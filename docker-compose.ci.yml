@@ -1,0 +1,17 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        DATABASE_URL: postgresql://hmpg:hmpg@postgres:5432/hmpg
+        UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-ci-dummy-unsplash-key}
+        CRON_SECRET: ${CRON_SECRET:-test-secret}
+    image: hmpg:ci
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://hmpg:hmpg@postgres:5432/hmpg
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-ci-dummy-unsplash-key}
+      PUBLIC_SENTRY_DSN: ''
+      CRON_SECRET: test-secret
+      ORIGIN: http://localhost:3000

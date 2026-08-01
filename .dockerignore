@@ -1,0 +1,14 @@
+node_modules
+.git
+.github
+.svelte-kit
+build
+coverage
+.env
+.env.*
+!.env.example
+!.env.development.example
+.vercel
+*.md
+.changeset
+.husky

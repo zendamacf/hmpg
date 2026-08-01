@@ -1,4 +1,4 @@
-import type { Config } from '@sveltejs/adapter-vercel';
+import { env } from '$env/dynamic/private';
 import { db } from '$lib/server/db';
 import { image } from '$lib/server/db/schema';
 import { UnsplashAPI } from '$lib/server/unsplash';
@@ -18,11 +18,15 @@ const KEYWORDS = [
   'wanderlust',
 ];
 
-export const config: Config = {
-  runtime: 'nodejs22.x',
-};
+export const GET: RequestHandler = async ({ request }) => {
+  const secret = env.CRON_SECRET;
+  if (!secret) throw new Error('CRON_SECRET is not set');
 
-export const GET: RequestHandler = async () => {
+  const authorization = request.headers.get('Authorization');
+  if (authorization !== `Bearer ${secret}`) {
+    return new Response(null, { status: 401 });
+  }
+
   const photo = await UnsplashAPI.getRandom(KEYWORDS);
 
   await db

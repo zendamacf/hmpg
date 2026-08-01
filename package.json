@@ -4,7 +4,7 @@
   "version": "0.0.2",
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env build",
+    "start": "node --env-file=.env build/index.js",
     "start:dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
@@ -25,14 +25,13 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.2",
     "@changesets/cli": "^2.31.0",
-    "@sveltejs/adapter-vercel": "^6.3.4",
+    "@sveltejs/adapter-node": "^5.5.7",
     "@sveltejs/kit": "^2.69.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/svelte": "^5.4.2",
     "@types/node": "^26",
     "@vitest/coverage-v8": "^4.1.10",
-    "drizzle-kit": "^0.31.10",
     "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "lint-staged": "^17.0.8",
@@ -47,7 +46,7 @@
   },
   "dependencies": {
     "@sentry/sveltekit": "^10.63.0",
-    "@vercel/analytics": "^2.0.1",
+    "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "postgres": "^3.4.9",
     "unsplash-js": "^8.0.0"
