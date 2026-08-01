@@ -8,7 +8,7 @@ A new tab replacement page.
 ## Local development
 
 ```bash
-cp .env.example .env   # set UNSPLASH_ACCESS_KEY, CRON_SECRET, DATABASE_URL
+cp .env.development.example .env   # set UNSPLASH_ACCESS_KEY, CRON_SECRET, DATABASE_URL
 npm ci --engine-strict=false
 npm run db:migrate
 npm run start:dev
@@ -17,7 +17,7 @@ npm run start:dev
 ## Docker
 
 ```bash
-cp .env.example .env   # fill secrets
+cp .env.example .env   # production Compose secrets (DB_PASSWORD, CRON_SECRET, …)
 # Local/CI: build from source
 docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build
 # Production-like: pull published image + Caddy/cron
