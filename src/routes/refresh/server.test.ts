@@ -5,6 +5,10 @@ const onConflictDoNothing = vi.fn();
 const values = vi.fn();
 const insert = vi.fn();
 
+vi.mock('$env/dynamic/private', () => ({
+  env: { CRON_SECRET: 'test-secret' },
+}));
+
 vi.mock('$lib/server/unsplash', () => ({
   UnsplashAPI: { getRandom },
 }));
@@ -20,7 +24,12 @@ insert.mockReturnValue({ values });
 
 const { GET } = await import('./+server');
 
-const requestEvent = {} as Parameters<typeof GET>[0];
+const makeEvent = (authorization?: string) =>
+  ({
+    request: new Request('http://localhost/refresh', {
+      headers: authorization ? { Authorization: authorization } : {},
+    }),
+  }) as Parameters<typeof GET>[0];
 
 const unsplashPhoto = {
   id: 'photo-1',
@@ -45,8 +54,23 @@ describe('GET /refresh', () => {
     getRandom.mockResolvedValue(unsplashPhoto);
   });
 
+  it('returns 401 without a valid bearer token', async () => {
+    const response = await GET(makeEvent());
+
+    expect(response.status).toBe(401);
+    expect(getRandom).not.toHaveBeenCalled();
+    expect(insert).not.toHaveBeenCalled();
+  });
+
+  it('returns 401 with an invalid bearer token', async () => {
+    const response = await GET(makeEvent('Bearer wrong'));
+
+    expect(response.status).toBe(401);
+    expect(getRandom).not.toHaveBeenCalled();
+  });
+
   it('fetches from Unsplash and inserts into the database', async () => {
-    const response = await GET(requestEvent);
+    const response = await GET(makeEvent('Bearer test-secret'));
 
     expect(getRandom).toHaveBeenCalledWith([
       'landscape',
@@ -80,7 +104,7 @@ describe('GET /refresh', () => {
       location: { name: null, latitude: null, longitude: null },
     });
 
-    await GET(requestEvent);
+    await GET(makeEvent('Bearer test-secret'));
 
     expect(values).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -89,5 +113,16 @@ describe('GET /refresh', () => {
         location: null,
       }),
     );
+  });
+
+  it('throws when CRON_SECRET is unset', async () => {
+    const { env } = await import('$env/dynamic/private');
+    const previous = env.CRON_SECRET;
+    // Simulate missing env (runtime may omit the key entirely).
+    Reflect.deleteProperty(env, 'CRON_SECRET');
+
+    await expect(GET(makeEvent('Bearer test-secret'))).rejects.toThrow('CRON_SECRET is not set');
+
+    env.CRON_SECRET = previous;
   });
 });

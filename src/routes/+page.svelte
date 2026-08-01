@@ -18,10 +18,8 @@ setInterval(updateTime, 1000);
     <button
       class="refresh color-in"
       aria-label="Refresh image"
-      onclick={async () => {
-        // Start icon spinning
+      onclick={() => {
         document.querySelector('.refresh i')?.classList.add('fa-spin');
-        await fetch('/refresh');
         window.location.reload();
       }}
     >

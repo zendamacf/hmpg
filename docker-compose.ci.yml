@@ -1,0 +1,14 @@
+services:
+  postgres:
+    ports:
+      - '5432:5432'
+
+  app:
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_URL: postgresql://hmpg:hmpg@postgres:5432/hmpg
+      UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-ci-dummy-unsplash-key}
+      PUBLIC_SENTRY_DSN: ''
+      CRON_SECRET: test-secret
+      ORIGIN: http://localhost:3000

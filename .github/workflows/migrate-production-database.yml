@@ -1,18 +1,13 @@
 name: Migrate Production Database
 
+# Emergency fallback only — normal deploys run migrations in the app container entrypoint.
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'drizzle/**'
   workflow_dispatch:
 
 concurrency:
   group: hmpg-db-migrate-production
   cancel-in-progress: false
 
-# Checkout only needs read access; limit GITHUB_TOKEN vs repo defaults.
 permissions:
   contents: read
 
@@ -25,13 +20,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 25
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --engine-strict=false
 
       - name: Run migrations
         env:

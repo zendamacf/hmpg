@@ -1,0 +1,4 @@
+{$ORIGIN:https://hmpg.kalopsia.dev} {
+	encode gzip
+	reverse_proxy app:3000
+}

@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   plugins: [
-    ...(process.env.VITEST
+    ...(process.env.VITEST || process.env.DOCKER_BUILD
       ? []
       : [
           sentrySvelteKit({

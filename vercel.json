@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/refresh",
-      "schedule": "0 2 * * *"
-    }
-  ]
-}
