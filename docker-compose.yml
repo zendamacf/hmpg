@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
 
   app:
-    build: .
+    image: ${APP_IMAGE:-ghcr.io/zendamacf/hmpg:latest}
     depends_on:
       postgres:
         condition: service_healthy

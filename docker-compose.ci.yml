@@ -4,6 +4,8 @@ services:
       - '5432:5432'
 
   app:
+    build: .
+    image: hmpg:ci
     ports:
       - '3000:3000'
     environment:

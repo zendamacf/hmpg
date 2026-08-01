@@ -5,8 +5,6 @@
 A new tab replacement page.
 [hmpg.kalopsia.dev](https://hmpg.kalopsia.dev)
 
-Self-hosted with Docker Compose (Node + Postgres). See [MIGRATION.md](./MIGRATION.md) for VPS cutover steps (DNS, GitHub secrets, data restore).
-
 ## Local development
 
 ```bash
@@ -20,6 +18,8 @@ npm run start:dev
 
 ```bash
 cp .env.example .env   # fill secrets
+# Local/CI: build from source
 docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build
-# Production-like (Caddy TLS + cron): docker compose --profile production up --build
+# Production-like: pull published image + Caddy/cron
+# APP_IMAGE=ghcr.io/zendamacf/hmpg:v0.0.3 docker compose --profile production up -d
 ```
