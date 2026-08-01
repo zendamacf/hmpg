@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   publish:
-    needs: deploy-smoke
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
