@@ -7,8 +7,15 @@ RUN npm ci --ignore-scripts --engine-strict=false
 
 FROM deps AS build
 COPY . .
+# SvelteKit postbuild imports server modules; these must be set (connection not required at build).
+ARG DATABASE_URL=postgresql://hmpg:hmpg@postgres:5432/hmpg
+ARG UNSPLASH_ACCESS_KEY=build-placeholder
+ARG CRON_SECRET=build-placeholder
 ENV HUSKY=0 \
-  DOCKER_BUILD=1
+  DOCKER_BUILD=1 \
+  DATABASE_URL=$DATABASE_URL \
+  UNSPLASH_ACCESS_KEY=$UNSPLASH_ACCESS_KEY \
+  CRON_SECRET=$CRON_SECRET
 RUN npm run build
 
 FROM node:22-bookworm-slim AS runtime

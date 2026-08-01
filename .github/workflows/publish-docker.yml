@@ -82,5 +82,9 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
             ${{ steps.meta.outputs.image }}:latest
+          build-args: |
+            DATABASE_URL=postgresql://hmpg:hmpg@postgres:5432/hmpg
+            UNSPLASH_ACCESS_KEY=build-placeholder
+            CRON_SECRET=build-placeholder
           cache-from: type=gha
           cache-to: type=gha,mode=max

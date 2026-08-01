@@ -4,7 +4,12 @@ services:
       - '5432:5432'
 
   app:
-    build: .
+    build:
+      context: .
+      args:
+        DATABASE_URL: postgresql://hmpg:hmpg@postgres:5432/hmpg
+        UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY:-ci-dummy-unsplash-key}
+        CRON_SECRET: ${CRON_SECRET:-test-secret}
     image: hmpg:ci
     ports:
       - '3000:3000'
