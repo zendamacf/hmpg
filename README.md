@@ -20,6 +20,5 @@ npm run start:dev
 cp .env.example .env   # production Compose secrets (DB_PASSWORD, CRON_SECRET, …)
 # Local/CI: build from source
 docker compose -f docker-compose.yml -f docker-compose.ci.yml up --build
-# Production-like: pull published image + Caddy/cron
 # APP_IMAGE=ghcr.io/zendamacf/hmpg:v0.0.3 docker compose --profile production up -d
 ```

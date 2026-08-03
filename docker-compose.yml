@@ -27,8 +27,8 @@ services:
       ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
       HOST: 0.0.0.0
       PORT: 3000
-    expose:
-      - '3000'
+    ports:
+      - '${APP_PORT:-3000}:3000'
     restart: unless-stopped
     healthcheck:
       test:
@@ -40,23 +40,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
-
-  caddy:
-    image: caddy:2
-    profiles: ['production']
-    depends_on:
-      app:
-        condition: service_healthy
-    ports:
-      - '80:80'
-      - '443:443'
-    environment:
-      ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    restart: unless-stopped
 
   cron:
     image: alpine:3.20
@@ -74,5 +57,3 @@ services:
 
 volumes:
   pgdata:
-  caddy_data:
-  caddy_config:
