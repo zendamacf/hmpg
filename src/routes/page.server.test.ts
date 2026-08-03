@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const limit = vi.fn();
+const insert = vi.fn();
+const getRandom = vi.fn();
 
 vi.mock('$lib/server/db', () => ({
   db: {
@@ -11,7 +13,12 @@ vi.mock('$lib/server/db', () => ({
         })),
       })),
     })),
+    insert,
   },
+}));
+
+vi.mock('$lib/server/unsplash', () => ({
+  UnsplashAPI: { getRandom },
 }));
 
 const { load } = await import('./+page.server');
