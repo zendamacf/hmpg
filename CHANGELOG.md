@@ -1,5 +1,11 @@
 # hmpg
 
+## 0.1.1
+
+### Patch Changes
+
+- 75d1bf6: Removes Caddy from deployment in favour of just exposing ports.
+
 ## 0.1.0
 
 ### Minor Changes
