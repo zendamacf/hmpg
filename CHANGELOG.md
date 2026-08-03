@@ -1,5 +1,15 @@
 # hmpg
 
+## 0.1.2
+
+### Patch Changes
+
+- f7a2360: Added more logging using Pino.
+- f7a2360: Removed Refresh button - this hasn't been working since the refresh was guarded behind a Cron secret.
+- 9022fdb: Updates initial page load to fetch an image if the database has no images.
+- f7a2360: Fixed Unsplash refresh not working anymore.
+- f7a2360: Fixed incorrect Biome version in config.
+
 ## 0.1.1
 
 ### Patch Changes
