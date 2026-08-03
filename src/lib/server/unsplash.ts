@@ -1,4 +1,4 @@
-import { createApi } from 'unsplash-js';
+import { type AssetFull, createApi } from 'unsplash-js';
 import { env } from '$env/dynamic/private';
 
 if (!env.UNSPLASH_ACCESS_KEY) throw new Error('UNSPLASH_ACCESS_KEY is not set');
@@ -23,19 +23,25 @@ interface UnsplashImage {
 }
 
 const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
-  const resp = (
-    await unsplash.GET('/photos/random', {
-      params: {
-        query: {
-          query: tags[Math.floor(Math.random() * tags.length)],
-          orientation: 'landscape',
-          count: 30,
-        },
+  const { data, error } = await unsplash.GET('/photos/random', {
+    params: {
+      query: {
+        query: tags[Math.floor(Math.random() * tags.length)],
+        orientation: 'landscape',
+        count: 30,
       },
-    })
-  ).response;
-  if (!Array.isArray(resp)) throw new Error('Unexpected response from Unsplash');
-  const raw = resp.find((r) => r.location.position.latitude);
+    },
+  });
+
+  if (error || data == null) {
+    throw new Error('Unexpected response from Unsplash');
+  }
+
+  // Random endpoint returns a single photo or an array depending on `count`.
+  // Runtime payloads include location fields even though the OpenAPI schema
+  // types this endpoint as Asset.Basic.
+  const photos = (Array.isArray(data) ? data : [data]) as AssetFull[];
+  const raw = photos.find((r) => r.location?.position?.latitude != null);
   if (!raw) throw new Error('No images found with coordinates');
 
   return {
@@ -45,8 +51,8 @@ const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
       regular: raw.urls.regular,
     },
     author: {
-      name: `${raw.user.first_name} ${raw.user.last_name}`,
-      instagram: raw.user.instagram_username,
+      name: raw.user.name,
+      instagram: raw.user.social.instagram_username,
     },
     location: {
       name: raw.location.name,
