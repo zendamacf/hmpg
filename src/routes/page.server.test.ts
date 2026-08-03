@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const limit = vi.fn();
-const insert = vi.fn();
-const getRandom = vi.fn();
+const refreshImage = vi.fn();
 
 vi.mock('$lib/server/db', () => ({
   db: {
@@ -13,12 +12,20 @@ vi.mock('$lib/server/db', () => ({
         })),
       })),
     })),
-    insert,
   },
 }));
 
-vi.mock('$lib/server/unsplash', () => ({
-  UnsplashAPI: { getRandom },
+vi.mock('$lib/server/refresh-image', () => ({
+  refreshImage,
+}));
+
+vi.mock('$lib/server/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
 }));
 
 const { load } = await import('./+page.server');
@@ -28,6 +35,8 @@ const loadEvent = {} as Parameters<typeof load>[0];
 describe('+page.server load', () => {
   beforeEach(() => {
     limit.mockReset();
+    refreshImage.mockReset();
+    refreshImage.mockResolvedValue(undefined);
   });
 
   it('returns a random image from the database', async () => {
@@ -45,11 +54,13 @@ describe('+page.server load', () => {
 
     await expect(load(loadEvent)).resolves.toEqual(photo);
     expect(limit).toHaveBeenCalledWith(1);
+    expect(refreshImage).not.toHaveBeenCalled();
   });
 
-  it('returns undefined when the database has no images', async () => {
+  it('refreshes and returns undefined when the database stays empty', async () => {
     limit.mockResolvedValue([]);
 
     await expect(load(loadEvent)).resolves.toBeUndefined();
+    expect(refreshImage).toHaveBeenCalledWith('page-load');
   });
 });

@@ -14,19 +14,6 @@ setInterval(updateTime, 1000);
 
 <div class="absolute background" style="--image-url: url({data.url})"></div>
 <div class="absolute foreground">
-  <section class="top">
-    <button
-      class="refresh color-in"
-      aria-label="Refresh image"
-      onclick={() => {
-        document.querySelector('.refresh i')?.classList.add('fa-spin');
-        window.location.reload();
-      }}
-    >
-      <i class="fas fa-sync-alt"></i>
-    </button>
-  </section>
-
   <section class="middle">
     <div class="time">
       <span>{time.hours}:{time.minutes}:{time.seconds}</span><small class="time-ampm"
@@ -130,12 +117,6 @@ setInterval(updateTime, 1000);
       position: absolute;
     }
 
-    .top {
-      top: 0;
-      left: 0;
-      right: 0;
-    }
-
     .middle {
       display: block;
       width: 100%;
@@ -153,12 +134,6 @@ setInterval(updateTime, 1000);
     .bottom-right {
       bottom: 0;
       right: 0;
-    }
-
-    .refresh {
-      max-width: 20px;
-      margin-left: 1em;
-      margin-top: 1em;
     }
 
     .time {

@@ -18,9 +18,10 @@ const photoWithCoords = {
   id: 'photo-1',
   urls: { full: 'https://example.com/full.jpg', regular: 'https://example.com/regular.jpg' },
   user: {
+    name: 'Jane Doe',
     first_name: 'Jane',
     last_name: 'Doe',
-    instagram_username: 'janedoe',
+    social: { instagram_username: 'janedoe' },
   },
   location: {
     name: 'Yosemite',
@@ -34,7 +35,7 @@ describe('UnsplashAPI.getRandom', () => {
   });
 
   it('maps a photo that has coordinates', async () => {
-    unsplashGet.mockResolvedValue({ response: [photoWithCoords] });
+    unsplashGet.mockResolvedValue({ data: [photoWithCoords] });
 
     const result = await UnsplashAPI.getRandom(['landscape', 'mountain']);
 
@@ -64,7 +65,7 @@ describe('UnsplashAPI.getRandom', () => {
 
   it('throws when no photos have coordinates', async () => {
     unsplashGet.mockResolvedValue({
-      response: [
+      data: [
         {
           ...photoWithCoords,
           location: { ...photoWithCoords.location, position: { latitude: null, longitude: null } },
@@ -77,17 +78,26 @@ describe('UnsplashAPI.getRandom', () => {
     );
   });
 
-  it('throws when the API returns a non-array response', async () => {
-    unsplashGet.mockResolvedValue({ response: photoWithCoords });
+  it('maps a single-photo response', async () => {
+    unsplashGet.mockResolvedValue({ data: photoWithCoords });
+
+    const result = await UnsplashAPI.getRandom(['city']);
+
+    expect(result.id).toBe('photo-1');
+    expect(result.location.latitude).toBe(37.8651);
+  });
+
+  it('throws when the API returns an error', async () => {
+    unsplashGet.mockResolvedValue({ data: undefined, error: { errors: ['rate limit'] } });
 
     await expect(UnsplashAPI.getRandom(['city'])).rejects.toThrow(
-      'No images found with coordinates',
+      'Unexpected response from Unsplash',
     );
   });
 
   it('maps null location and instagram fields', async () => {
     unsplashGet.mockResolvedValue({
-      response: [
+      data: [
         {
           ...photoWithCoords,
           location: {
@@ -96,7 +106,7 @@ describe('UnsplashAPI.getRandom', () => {
           },
           user: {
             ...photoWithCoords.user,
-            instagram_username: null,
+            social: { instagram_username: null },
           },
         },
       ],
