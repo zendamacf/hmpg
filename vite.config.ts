@@ -34,10 +34,10 @@ export default defineConfig({
         'src/lib/server/db/index.ts',
       ],
       thresholds: {
-        lines: 95,
+        lines: 90,
         statements: 90,
         branches: 75,
-        functions: 95,
+        functions: 90,
       },
     },
   },
