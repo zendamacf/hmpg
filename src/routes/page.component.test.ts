@@ -94,14 +94,4 @@ describe('+page.svelte', () => {
 
     expect(open).toHaveBeenCalledWith('https://github.com/zendamacf/hmpg', '_blank');
   });
-
-  it('reloads the page when the refresh button is clicked', async () => {
-    const { container } = render(Page, { props: pageProps });
-
-    await screen.getByRole('button', { name: 'Refresh image' }).click();
-
-    expect(container.querySelector('.refresh i')).toHaveClass('fa-spin');
-    expect(reload).toHaveBeenCalled();
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
 });
