@@ -18,6 +18,7 @@ const KEYWORDS = [
 
 export async function refreshImage() {
   const photo = await UnsplashAPI.getRandom(KEYWORDS);
+  if (!photo) return;
 
   await db
     .insert(image)
