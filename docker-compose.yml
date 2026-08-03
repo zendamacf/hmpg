@@ -24,6 +24,7 @@ services:
       UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY}
       PUBLIC_SENTRY_DSN: ${PUBLIC_SENTRY_DSN:-}
       CRON_SECRET: ${CRON_SECRET}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
       HOST: 0.0.0.0
       PORT: 3000

@@ -34,7 +34,8 @@ const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
       },
     })
   ).response;
-  const raw = Array.isArray(resp) ? resp.find((r) => r.location.position.latitude) : undefined;
+  if (!Array.isArray(resp)) throw new Error('Unexpected response from Unsplash');
+  const raw = resp.find((r) => r.location.position.latitude);
   if (!raw) throw new Error('No images found with coordinates');
 
   return {

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getRandom = vi.fn();
+const returning = vi.fn();
 const onConflictDoNothing = vi.fn();
 const values = vi.fn();
 const insert = vi.fn();
@@ -19,7 +20,17 @@ vi.mock('$lib/server/db', () => ({
   },
 }));
 
+vi.mock('$lib/server/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 values.mockReturnValue({ onConflictDoNothing });
+onConflictDoNothing.mockReturnValue({ returning });
 insert.mockReturnValue({ values });
 
 const { GET } = await import('./+server');
@@ -50,7 +61,9 @@ describe('GET /refresh', () => {
     getRandom.mockReset();
     values.mockClear();
     onConflictDoNothing.mockReset();
-    onConflictDoNothing.mockResolvedValue(undefined);
+    onConflictDoNothing.mockReturnValue({ returning });
+    returning.mockReset();
+    returning.mockResolvedValue([{ id: 1 }]);
     getRandom.mockResolvedValue(unsplashPhoto);
   });
 
@@ -95,6 +108,7 @@ describe('GET /refresh', () => {
       url: 'https://example.com/full.jpg',
     });
     expect(onConflictDoNothing).toHaveBeenCalled();
+    expect(returning).toHaveBeenCalled();
     expect(response.status).toBe(200);
   });
 
