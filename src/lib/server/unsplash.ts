@@ -37,9 +37,8 @@ const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
     throw new Error('Unexpected response from Unsplash');
   }
 
-  // Random endpoint returns a single photo or an array depending on `count`.
-  // Runtime payloads include location fields even though the OpenAPI schema
-  // types this endpoint as Asset.Basic.
+  // Random endpoint returns a single photo or an array depending on count parameter
+  // Handle both cases just in case
   const photos = (Array.isArray(data) ? data : [data]) as AssetFull[];
   const raw = photos.find((r) => r.location?.position?.latitude != null);
   if (!raw) throw new Error('No images found with coordinates');
