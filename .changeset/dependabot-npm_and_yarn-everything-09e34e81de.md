@@ -2,4 +2,4 @@
 "hmpg": patch
 ---
 
-Updated @sentry/sveltekit, @biomejs/biome, typescript, vite (version-update:semver-major).
+Updated @sentry/sveltekit, @biomejs/biome, vite (version-update:semver-major).
