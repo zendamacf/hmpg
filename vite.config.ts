@@ -24,7 +24,7 @@ export default defineConfig({
     include: ['src/**/*.{test,spec,component.test}.{js,ts}'],
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'json-summary'],
+      reporter: ['text', 'json', 'json-summary', 'lcov'],
       reportsDirectory: 'coverage',
       include: ['src/lib/**/*.ts', 'src/routes/**/*.ts'],
       exclude: [

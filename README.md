@@ -1,6 +1,6 @@
 # hmpg
 
-[![Build Status](https://github.com/zendamacf/hmpg/workflows/PR%20Tests/badge.svg)](https://github.com/zendamacf/hmpg/actions/workflows/pr-tests.yml)
+[![Build Status](https://github.com/zendamacf/hmpg/workflows/Tests/badge.svg)](https://github.com/zendamacf/hmpg/actions/workflows/tests.yml)
 
 A new tab replacement page.
 [hmpg.kalopsia.dev](https://hmpg.kalopsia.dev)
