@@ -50,6 +50,14 @@ jobs:
       - name: Test
         run: npm run test:coverage
 
+      - name: Upload coverage to Codecov
+        if: success()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
+          fail_ci_if_error: true
+
       - name: Post coverage comment
         if: success()
         uses: davelosert/vitest-coverage-report-action@v2
