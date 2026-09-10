@@ -46,7 +46,7 @@
     "*": "biome check --write --no-errors-on-unmatched"
   },
   "dependencies": {
-    "@sentry/sveltekit": "^10.69.0",
+    "@sentry/sveltekit": "^10.70.0",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
     "pino": "^10.3.1",
