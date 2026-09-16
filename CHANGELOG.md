@@ -1,5 +1,34 @@
 # hmpg
 
+## 0.1.3
+
+### Patch Changes
+
+- 0147e4e: Updated brace-expansion from 5.0.8 to 5.0.9 (version-update:semver-patch).
+- 1762d7a: Updated browserslist from 4.28.2 to 4.28.8 (version-update:semver-patch).
+- 2365258: Updated @sentry/sveltekit, @biomejs/biome, vite (version-update:semver-major).
+- ae47adc: Updated unsplash-js, svelte, svelte-check (version-update:semver-patch).
+- 6dc43a9: Updated @biomejs/biome, jsdom (version-update:semver-patch).
+- 037e289: Updated @biomejs/biome, @changesets/cli (version-update:semver-major).
+- f05af19: Updated @sentry/sveltekit, lint-staged, vite (version-update:semver-minor).
+- 0e11ae5: Updated @testing-library/jest-dom (version-update:semver-patch).
+- 6cc8e08: Updated @sentry/sveltekit (version-update:semver-minor).
+- a9a3968: Updated @sentry/sveltekit, @sveltejs/kit, @sveltejs/vite-plugin-svelte, @types/node, svelte-check (version-update:semver-minor).
+- 12074e8: Updated @sentry/sveltekit, lint-staged, svelte (version-update:semver-minor).
+- 65d9319: Updated @sentry/sveltekit, @biomejs/biome, @testing-library/jest-dom, lint-staged, svelte (version-update:semver-major).
+- e12a7c0: Updated @sentry/sveltekit, @changesets/cli, svelte, svelte-check, vite (version-update:semver-minor).
+- e7259b2: Updated lint-staged (version-update:semver-minor).
+- 2e618c5: Updated @sveltejs/vite-plugin-svelte (version-update:semver-patch).
+- a2f16f9: Updated jsdom (version-update:semver-major).
+- 9308ce1: Updated @biomejs/biome (version-update:semver-patch).
+- c29677a: Updated @types/node, svelte-check (version-update:semver-patch).
+- f8a3ce2: Updated @biomejs/biome, svelte (version-update:semver-patch).
+- e352332: Updated @sveltejs/vite-plugin-svelte, @types/node, svelte-check, vite (version-update:semver-minor).
+- 13f07ec: Updated js-yaml, js-yaml.
+- f2668ea: Updated @sveltejs/kit from 2.69.2 to 2.70.2 (version-update:semver-minor).
+- ca4b4db: Updated undici from 7.28.0 to 7.29.0 (version-update:semver-minor).
+- d5f6b63: Updated vitest from 4.1.10 to 4.1.11 (version-update:semver-patch).
+
 ## 0.1.2
 
 ### Patch Changes
