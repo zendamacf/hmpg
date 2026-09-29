@@ -2,10 +2,11 @@ import * as Sentry from '@sentry/sveltekit';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/public';
+import { tracesSampleRate } from '$lib/sentry-traces-sample-rate';
 
 Sentry.init({
   dsn: env.PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: tracesSampleRate(),
   environment: dev ? 'development' : 'production',
 });
 

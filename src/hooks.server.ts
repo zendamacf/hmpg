@@ -4,12 +4,13 @@ import type { HandleServerError } from '@sveltejs/kit';
 import { sequence } from '@sveltejs/kit/hooks';
 import { dev } from '$app/environment';
 import { env } from '$env/dynamic/public';
+import { tracesSampleRate } from '$lib/sentry-traces-sample-rate';
 import { logHandle } from '$lib/server/log-handle';
 import { logger } from '$lib/server/logger';
 
 Sentry.init({
   dsn: env.PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0,
+  tracesSampleRate: tracesSampleRate(),
   environment: dev ? 'development' : 'production',
 });
 
