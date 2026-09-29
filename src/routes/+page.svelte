@@ -1,46 +1,160 @@
 <script lang="ts">
+import { onMount } from 'svelte';
+import {
+  defaultUserSettings,
+  loadUserSettings,
+  saveUserSettings,
+  type UserSettings,
+} from '$lib/settings';
 import { timeParts } from '$lib/time';
 import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();
 
-let time = $state(timeParts(new Date()));
-const updateTime = () => {
-  time = timeParts(new Date());
+let settings = $state<UserSettings>(defaultUserSettings);
+let showSettings = $state(false);
+
+const mapsUrl = (latitude: string | null, longitude: string | null) => {
+  if (latitude == null || longitude == null) {
+    return 'https://www.google.com/maps';
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 };
 
-setInterval(updateTime, 1000);
+const instagramUrl = (username: string) => `https://instagram.com/${username}`;
+
+let time = $state(timeParts(new Date()));
+
+const refreshClock = () => {
+  time = timeParts(new Date(), {
+    hour12: settings.hour12,
+    timeZone: settings.timezone,
+  });
+};
+
+const updateSettings = (patch: Partial<UserSettings>) => {
+  settings = { ...settings, ...patch };
+  saveUserSettings(settings);
+  refreshClock();
+};
+
+onMount(() => {
+  settings = loadUserSettings();
+  refreshClock();
+  const intervalId = setInterval(refreshClock, 1000);
+  return () => clearInterval(intervalId);
+});
 </script>
 
 <div class="absolute background" style="--image-url: url({data.url})"></div>
 <div class="absolute foreground">
   <section class="middle">
     <div class="time">
-      <span>{time.hours}:{time.minutes}:{time.seconds}</span><small class="time-ampm"
-        >{time.ampm}</small
-      >
+      <span>{time.hours}:{time.minutes}:{time.seconds}</span>
+      {#if time.ampm}
+        <small class="time-ampm">{time.ampm}</small>
+      {/if}
     </div>
   </section>
 
   <section class="bottom-left">
-    <button
-      class="location highlight"
-      onclick={() =>
-        window.open(`http://maps.google.com/?q=${data.latitude},${data.longitude}`, '_blank')}
-    >
-      <i class="fas fa-map-marker-alt"></i>
-      &nbsp;
-      <span class="name">{data.location}</span>
-    </button>
+    {#if settings.showLocation}
+      <button
+        class="location highlight"
+        onclick={() => window.open(mapsUrl(data.latitude, data.longitude), '_blank', 'noopener')}
+      >
+        <i class="fas fa-map-marker-alt"></i>
+        &nbsp;
+        <span class="name">{data.location}</span>
+      </button>
+    {/if}
 
-    <button class="author highlight" onclick={() => window.open(data.url ?? '', '_blank')}>
-      <i class="fas fa-camera"></i>
-      &nbsp;
-      <span class="name">Taken by {data.author_name} on Unsplash</span>
-    </button>
+    {#if settings.showAttribution}
+      <button class="author highlight" onclick={() => window.open(data.url ?? '', '_blank')}>
+        <i class="fas fa-camera"></i>
+        &nbsp;
+        <span class="name">Taken by {data.author_name} on Unsplash</span>
+      </button>
+
+      {#if data.author_instagram}
+        <button
+          class="author-instagram highlight"
+          onclick={() =>
+            window.open(instagramUrl(data.author_instagram ?? ''), '_blank', 'noopener,noreferrer')}
+          aria-label="Instagram @{data.author_instagram}"
+        >
+          <i class="fab fa-instagram"></i>
+          &nbsp;
+          <span class="name">@{data.author_instagram}</span>
+        </button>
+      {/if}
+    {/if}
   </section>
 
   <section class="bottom-right">
+    <button
+      class="settings color-in"
+      onclick={() => {
+        showSettings = !showSettings;
+      }}
+      aria-expanded={showSettings}
+      aria-label="Display settings"
+    >
+      <span class="credit-icon">
+        <i class="fas fa-cog"></i>
+      </span>
+    </button>
+
+    {#if showSettings}
+      <form
+        class="settings-panel"
+        onsubmit={(event) => event.preventDefault()}
+        aria-label="Display settings"
+      >
+        <label>
+          <input
+            type="checkbox"
+            checked={settings.hour12}
+            onchange={(event) =>
+              updateSettings({ hour12: (event.currentTarget as HTMLInputElement).checked })}
+          />
+          12-hour clock
+        </label>
+        <label>
+          Timezone override
+          <input
+            type="text"
+            placeholder="Browser default"
+            value={settings.timezone ?? ''}
+            oninput={(event) => {
+              const value = (event.currentTarget as HTMLInputElement).value.trim();
+              updateSettings({ timezone: value === '' ? null : value });
+            }}
+          />
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={settings.showLocation}
+            onchange={(event) =>
+              updateSettings({ showLocation: (event.currentTarget as HTMLInputElement).checked })}
+          />
+          Show location
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={settings.showAttribution}
+            onchange={(event) =>
+              updateSettings({
+                showAttribution: (event.currentTarget as HTMLInputElement).checked,
+              })}
+          />
+          Show photo attribution
+        </label>
+      </form>
+    {/if}
+
     <button
       class="credit color-in"
       onclick={() => window.open('https://github.com/zendamacf/hmpg', '_blank')}
@@ -134,6 +248,12 @@ setInterval(updateTime, 1000);
     .bottom-right {
       bottom: 0;
       right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5em;
+      margin-right: 1em;
+      margin-bottom: 1em;
     }
 
     .time {
@@ -148,24 +268,55 @@ setInterval(updateTime, 1000);
     .location {
       display: block;
       margin-left: 1em;
-
-      + .author {
-        margin-top: 0.4em;
-      }
     }
 
-    .author {
+    .author,
+    .author-instagram {
       display: block;
       font-style: italic;
       margin-left: 1em;
+      margin-bottom: 0.4em;
+      margin-top: 0.4em;
+    }
+
+    .location + .author {
+      margin-top: 0.4em;
+    }
+
+    .author-instagram:last-child {
       margin-bottom: 1em;
     }
 
-    .credit {
+    .credit,
+    .settings {
       display: block;
       transition: ease-in-out all 0.4s;
-      margin-right: 1em;
-      margin-bottom: 1em;
+    }
+
+    .settings-panel {
+      background: rgb(0 0 0 / 0.55);
+      border-radius: 0.5em;
+      padding: 0.75em 1em;
+      min-width: 14rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5em;
+      text-align: left;
+      font-size: 0.9rem;
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25em;
+      }
+
+      input[type='text'] {
+        color: white;
+        background: rgb(255 255 255 / 0.1);
+        border: 1px solid rgb(255 255 255 / 0.25);
+        border-radius: 0.25em;
+        padding: 0.25em 0.5em;
+      }
     }
   }
 </style>
