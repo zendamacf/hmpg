@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { timeParts } from './time';
 
 describe('timeParts', () => {
@@ -55,5 +55,20 @@ describe('timeParts', () => {
       seconds: '00',
       ampm: '',
     });
+  });
+
+  it('falls back when Intl parts are missing', () => {
+    const formatToParts = vi
+      .spyOn(Intl.DateTimeFormat.prototype, 'formatToParts')
+      .mockReturnValue([]);
+
+    expect(timeParts(new Date(2024, 0, 1, 9, 0, 0))).toEqual({
+      hours: '0',
+      minutes: '00',
+      seconds: '00',
+      ampm: '',
+    });
+
+    formatToParts.mockRestore();
   });
 });
