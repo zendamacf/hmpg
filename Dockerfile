@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-bookworm-slim AS deps
+FROM node:26-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --engine-strict=false
@@ -18,7 +18,7 @@ ENV HUSKY=0 \
   CRON_SECRET=$CRON_SECRET
 RUN npm run build
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
   HOST=0.0.0.0 \
@@ -35,6 +35,14 @@ RUN apt-get update \
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts --engine-strict=false \
   && chown -R sveltekit:nodejs /app
+
+# drizzle-kit is a devDependency; copy migration CLI and its runtime deps from the full install.
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/@drizzle-team ./node_modules/@drizzle-team
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/@esbuild-kit ./node_modules/@esbuild-kit
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/esbuild ./node_modules/esbuild
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/tsx ./node_modules/tsx
+COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/.bin/drizzle-kit ./node_modules/.bin/drizzle-kit
 
 COPY --from=build --chown=sveltekit:nodejs /app/build ./build
 COPY --from=build --chown=sveltekit:nodejs /app/drizzle ./drizzle
