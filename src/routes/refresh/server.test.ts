@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { resetRateLimits } from '$lib/server/rate-limit';
 
 const getRandom = vi.fn();
 const returning = vi.fn();
@@ -58,6 +59,7 @@ const unsplashPhoto = {
 
 describe('GET /refresh', () => {
   beforeEach(() => {
+    resetRateLimits();
     getRandom.mockReset();
     values.mockClear();
     onConflictDoNothing.mockReset();
@@ -127,6 +129,20 @@ describe('GET /refresh', () => {
         location: null,
       }),
     );
+  });
+
+  it('returns 429 when the rate limit is exceeded', async () => {
+    const event = makeEvent('Bearer test-secret');
+
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const response = await GET(event);
+      expect(response.status).toBe(200);
+    }
+
+    const throttled = await GET(event);
+    expect(throttled.status).toBe(429);
+    expect(throttled.headers.get('Retry-After')).toBeTruthy();
+    expect(getRandom).toHaveBeenCalledTimes(10);
   });
 
   it('throws when CRON_SECRET is unset', async () => {
