@@ -86,7 +86,7 @@ jobs:
       - name: Seed sample image for homepage
         run: |
           docker compose -f docker-compose.yml -f docker-compose.ci.yml exec -T postgres \
-            psql -U hmpg -d hmpg -c "INSERT INTO image (unspashid, latitude, longitude, location, author_name, author_instagram, url)
+            psql -U hmpg -d hmpg -c "INSERT INTO image (unsplash_id, latitude, longitude, location, author_name, author_instagram, url)
             VALUES ('ci-seed', '0', '0', 'CI', 'CI', null, 'https://example.com/ci.jpg')
             ON CONFLICT DO NOTHING;"
 

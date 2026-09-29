@@ -27,7 +27,7 @@ export async function refreshImage(trigger: 'cron' | 'page-load' = 'cron') {
   const inserted = await db
     .insert(image)
     .values({
-      unsplashid: photo.id,
+      unsplash_id: photo.id,
       latitude: photo.location.latitude?.toString(),
       longitude: photo.location.longitude?.toString(),
       location: photo.location.name,
@@ -35,7 +35,7 @@ export async function refreshImage(trigger: 'cron' | 'page-load' = 'cron') {
       author_instagram: photo.author.instagram,
       url: photo.urls.full,
     })
-    .onConflictDoNothing({ target: image.unsplashid })
+    .onConflictDoNothing({ target: image.unsplash_id })
     .returning({ id: image.id });
 
   if (inserted.length === 0) {

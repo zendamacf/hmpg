@@ -101,7 +101,7 @@ describe('GET /refresh', () => {
       'wanderlust',
     ]);
     expect(values).toHaveBeenCalledWith({
-      unsplashid: 'photo-1',
+      unsplash_id: 'photo-1',
       latitude: '37.8651',
       longitude: '-119.5383',
       location: 'Yosemite',

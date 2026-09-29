@@ -48,7 +48,7 @@ describe('+page.server load', () => {
       location: 'Yosemite',
       author_name: 'Jane Doe',
       author_instagram: 'janedoe',
-      unsplashid: 'photo-1',
+      unsplash_id: 'photo-1',
     };
     limit.mockResolvedValue([photo]);
 

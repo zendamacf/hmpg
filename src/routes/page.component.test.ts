@@ -16,7 +16,7 @@ const pageProps: PageProps = {
     location: 'Yosemite',
     author_name: 'Jane Doe',
     author_instagram: 'janedoe',
-    unsplashid: 'photo-1',
+    unsplash_id: 'photo-1',
   },
   form: undefined,
 };
