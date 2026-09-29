@@ -1,6 +1,7 @@
 <script lang="ts">
 import { onMount } from 'svelte';
 import { invalidateAll } from '$app/navigation';
+import Icon from '$lib/Icon.svelte';
 import {
   defaultUserSettings,
   loadUserSettings,
@@ -77,7 +78,7 @@ onMount(() => {
           class="location highlight"
           onclick={() => window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener')}
         >
-          <i class="fas fa-map-marker-alt"></i>
+          <Icon name="map-marker" />
           &nbsp;
           <span class="name">{photo.location}</span>
         </button>
@@ -85,7 +86,7 @@ onMount(() => {
 
       {#if settings.showAttribution}
         <button class="author highlight" onclick={() => window.open(photo.url ?? '', '_blank')}>
-          <i class="fas fa-camera"></i>
+          <Icon name="camera" />
           &nbsp;
           <span class="name">Taken by {photo.author_name} on Unsplash</span>
         </button>
@@ -101,7 +102,7 @@ onMount(() => {
               )}
             aria-label="Instagram @{photo.author_instagram}"
           >
-            <i class="fab fa-instagram"></i>
+            <Icon name="instagram" />
             &nbsp;
             <span class="name">@{photo.author_instagram}</span>
           </button>
@@ -120,7 +121,7 @@ onMount(() => {
       aria-label="Display settings"
     >
       <span class="credit-icon">
-        <i class="fas fa-cog"></i>
+        <Icon name="cog" />
       </span>
     </button>
 
@@ -180,7 +181,7 @@ onMount(() => {
       aria-label="GitHub icon"
     >
       <span class="credit-icon">
-        <i class="fab fa-github"></i>
+        <Icon name="github" />
       </span>
     </button>
   </section>
@@ -194,10 +195,12 @@ onMount(() => {
   small {
     font-size: 35%;
   }
-  i {
-    text-align: center;
-    font-size: 1.2em;
-    width: 20px !important;
+  :global(.icon) {
+    display: inline-block;
+    vertical-align: middle;
+    width: 1.2em;
+    height: 1.2em;
+    flex-shrink: 0;
   }
   button {
     background: none;
