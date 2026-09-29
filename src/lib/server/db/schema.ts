@@ -2,7 +2,7 @@ import { integer, numeric, pgTable, text } from 'drizzle-orm/pg-core';
 
 export const image = pgTable('image', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-  unsplashid: text('unspashid').unique(),
+  unsplash_id: text('unsplash_id').unique(),
   latitude: numeric('latitude'),
   longitude: numeric('longitude'),
   location: text('location'),
