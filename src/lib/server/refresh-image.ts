@@ -1,5 +1,6 @@
 import { db } from '$lib/server/db';
 import { image } from '$lib/server/db/schema';
+import { pruneStoredImages } from '$lib/server/image-pool';
 import { logger } from '$lib/server/logger';
 import { UnsplashAPI } from '$lib/server/unsplash';
 
@@ -43,11 +44,12 @@ export async function refreshImage(trigger: 'cron' | 'page-load' = 'cron') {
       { trigger, unsplashId: photo.id, location: photo.location.name, author: photo.author.name },
       'skipped duplicate image',
     );
-    return;
+  } else {
+    logger.info(
+      { trigger, unsplashId: photo.id, location: photo.location.name, author: photo.author.name },
+      'image refreshed',
+    );
   }
 
-  logger.info(
-    { trigger, unsplashId: photo.id, location: photo.location.name, author: photo.author.name },
-    'image refreshed',
-  );
+  await pruneStoredImages();
 }

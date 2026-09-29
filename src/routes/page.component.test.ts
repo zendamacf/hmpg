@@ -6,18 +6,28 @@ import { defaultUserSettings } from '$lib/settings';
 import Page from './+page.svelte';
 import type { PageProps } from './$types';
 
+const { invalidateAll } = vi.hoisted(() => ({
+  invalidateAll: vi.fn(),
+}));
+
+vi.mock('$app/navigation', () => ({
+  invalidateAll,
+}));
+
+const photo = {
+  id: 1,
+  url: 'https://example.com/photo.jpg',
+  latitude: '37.8651',
+  longitude: '-119.5383',
+  location: 'Yosemite',
+  author_name: 'Jane Doe',
+  author_instagram: 'janedoe',
+  unsplash_id: 'photo-1',
+};
+
 const pageProps: PageProps = {
   params: {},
-  data: {
-    id: 1,
-    url: 'https://example.com/photo.jpg',
-    latitude: '37.8651',
-    longitude: '-119.5383',
-    location: 'Yosemite',
-    author_name: 'Jane Doe',
-    author_instagram: 'janedoe',
-    unsplash_id: 'photo-1',
-  },
+  data: { photo },
   form: undefined,
 };
 
@@ -43,6 +53,7 @@ describe('+page.svelte', () => {
   beforeEach(() => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date(2024, 0, 1, 15, 5, 7));
+    invalidateAll.mockReset();
     open.mockReset();
     reload.mockReset();
     fetchMock.mockReset();
@@ -164,5 +175,18 @@ describe('+page.svelte', () => {
 
     expect(screen.getByText('Yosemite')).toBeInTheDocument();
     expect(screen.getByText('3:05:07')).toBeInTheDocument();
+  });
+
+  it('renders an empty state and retries via invalidateAll', async () => {
+    const { container } = render(Page, {
+      props: { ...pageProps, data: { photo: null } },
+    });
+
+    expect(screen.getByText(/No background photo is available/i)).toBeInTheDocument();
+    expect(container.querySelector('.background.empty')).toBeTruthy();
+    expect(screen.queryByText('Yosemite')).not.toBeInTheDocument();
+
+    await screen.getByRole('button', { name: 'Try again' }).click();
+    expect(invalidateAll).toHaveBeenCalled();
   });
 });

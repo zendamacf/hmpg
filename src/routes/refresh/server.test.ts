@@ -30,6 +30,11 @@ vi.mock('$lib/server/logger', () => ({
   },
 }));
 
+vi.mock('$lib/server/image-pool', () => ({
+  pruneStoredImages: vi.fn().mockResolvedValue(0),
+  MAX_STORED_IMAGES: 100,
+}));
+
 values.mockReturnValue({ onConflictDoNothing });
 onConflictDoNothing.mockReturnValue({ returning });
 insert.mockReturnValue({ values });

@@ -7,7 +7,9 @@ declare global {
   namespace App {
     // interface Error {}
     // interface Locals {}
-    interface PageData extends InferSelectModel<typeof image> {}
+    interface PageData {
+      photo: InferSelectModel<typeof image> | null;
+    }
     // interface PageState {}
     // interface Platform {}
   }

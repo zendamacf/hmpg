@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const limit = vi.fn();
 const refreshImage = vi.fn();
@@ -34,9 +34,14 @@ const loadEvent = {} as Parameters<typeof load>[0];
 
 describe('+page.server load', () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     limit.mockReset();
     refreshImage.mockReset();
     refreshImage.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('returns a random image from the database', async () => {
@@ -52,15 +57,37 @@ describe('+page.server load', () => {
     };
     limit.mockResolvedValue([photo]);
 
-    await expect(load(loadEvent)).resolves.toEqual(photo);
+    await expect(load(loadEvent)).resolves.toEqual({ photo });
     expect(limit).toHaveBeenCalledWith(1);
     expect(refreshImage).not.toHaveBeenCalled();
   });
 
-  it('refreshes and returns undefined when the database stays empty', async () => {
+  it('retries refresh and returns null when the database stays empty', async () => {
     limit.mockResolvedValue([]);
 
-    await expect(load(loadEvent)).resolves.toBeUndefined();
+    const resultPromise = load(loadEvent);
+    await vi.runAllTimersAsync();
+    await expect(resultPromise).resolves.toEqual({ photo: null });
+    expect(refreshImage).toHaveBeenCalledTimes(3);
     expect(refreshImage).toHaveBeenCalledWith('page-load');
+  });
+
+  it('returns a photo after a later refresh attempt succeeds', async () => {
+    const photo = {
+      id: 2,
+      url: 'https://example.com/photo-2.jpg',
+      latitude: '0',
+      longitude: '0',
+      location: 'Test',
+      author_name: 'Author',
+      author_instagram: null,
+      unsplash_id: 'photo-2',
+    };
+    limit.mockResolvedValueOnce([]).mockResolvedValueOnce([]).mockResolvedValueOnce([photo]);
+
+    const resultPromise = load(loadEvent);
+    await vi.runAllTimersAsync();
+    await expect(resultPromise).resolves.toEqual({ photo });
+    expect(refreshImage).toHaveBeenCalledTimes(2);
   });
 });

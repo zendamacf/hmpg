@@ -1,5 +1,6 @@
 <script lang="ts">
 import { onMount } from 'svelte';
+import { invalidateAll } from '$app/navigation';
 import {
   defaultUserSettings,
   loadUserSettings,
@@ -10,6 +11,8 @@ import { timeParts } from '$lib/time';
 import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();
+
+const photo = $derived(data.photo);
 
 let settings = $state<UserSettings>(defaultUserSettings);
 let showSettings = $state(false);
@@ -46,7 +49,11 @@ onMount(() => {
 });
 </script>
 
-<div class="absolute background" style="--image-url: url({data.url})"></div>
+<div
+  class="absolute background"
+  class:empty={!photo}
+  style={photo?.url ? `--image-url: url(${photo.url})` : undefined}
+></div>
 <div class="absolute foreground">
   <section class="middle">
     <div class="time">
@@ -55,41 +62,53 @@ onMount(() => {
         <small class="time-ampm">{time.ampm}</small>
       {/if}
     </div>
-  </section>
-
-  <section class="bottom-left">
-    {#if settings.showLocation}
-      <button
-        class="location highlight"
-        onclick={() => window.open(mapsUrl(data.latitude, data.longitude), '_blank', 'noopener')}
-      >
-        <i class="fas fa-map-marker-alt"></i>
-        &nbsp;
-        <span class="name">{data.location}</span>
+    {#if !photo}
+      <p class="empty-message">No background photo is available right now.</p>
+      <button class="retry highlight" type="button" onclick={() => invalidateAll()}>
+        Try again
       </button>
     {/if}
+  </section>
 
-    {#if settings.showAttribution}
-      <button class="author highlight" onclick={() => window.open(data.url ?? '', '_blank')}>
-        <i class="fas fa-camera"></i>
-        &nbsp;
-        <span class="name">Taken by {data.author_name} on Unsplash</span>
-      </button>
-
-      {#if data.author_instagram}
+  {#if photo}
+    <section class="bottom-left">
+      {#if settings.showLocation}
         <button
-          class="author-instagram highlight"
-          onclick={() =>
-            window.open(instagramUrl(data.author_instagram ?? ''), '_blank', 'noopener,noreferrer')}
-          aria-label="Instagram @{data.author_instagram}"
+          class="location highlight"
+          onclick={() => window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener')}
         >
-          <i class="fab fa-instagram"></i>
+          <i class="fas fa-map-marker-alt"></i>
           &nbsp;
-          <span class="name">@{data.author_instagram}</span>
+          <span class="name">{photo.location}</span>
         </button>
       {/if}
-    {/if}
-  </section>
+
+      {#if settings.showAttribution}
+        <button class="author highlight" onclick={() => window.open(photo.url ?? '', '_blank')}>
+          <i class="fas fa-camera"></i>
+          &nbsp;
+          <span class="name">Taken by {photo.author_name} on Unsplash</span>
+        </button>
+
+        {#if photo.author_instagram}
+          <button
+            class="author-instagram highlight"
+            onclick={() =>
+              window.open(
+                instagramUrl(photo.author_instagram ?? ''),
+                '_blank',
+                'noopener,noreferrer',
+              )}
+            aria-label="Instagram @{photo.author_instagram}"
+          >
+            <i class="fab fa-instagram"></i>
+            &nbsp;
+            <span class="name">@{photo.author_instagram}</span>
+          </button>
+        {/if}
+      {/if}
+    </section>
+  {/if}
 
   <section class="bottom-right">
     <button
@@ -222,6 +241,11 @@ onMount(() => {
     background-color: #464646;
     background-image: var(--image-url);
     z-index: 1;
+
+    &.empty {
+      background-image: none;
+      background: linear-gradient(160deg, #3a3a3a 0%, #1f1f1f 100%);
+    }
   }
 
   .foreground {
@@ -263,6 +287,17 @@ onMount(() => {
       .time-ampm {
         margin-left: 10px;
       }
+    }
+
+    .empty-message {
+      margin-top: 1rem;
+      font-size: clamp(1rem, 3vw, 1.5rem);
+      opacity: 0.9;
+    }
+
+    .retry {
+      margin-top: 1rem;
+      font-size: 1.1rem;
     }
 
     .location {
