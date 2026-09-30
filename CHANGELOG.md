@@ -1,5 +1,36 @@
 # hmpg
 
+## 0.2.0
+
+### Minor Changes
+
+- e8d9d43: Show an optional Instagram link in photo attribution when `author_instagram` is set.
+- 3efee6a: Add homepage empty state with retry when no background photo is available, including limited refresh retries on page load.
+- 9997f97: Rate limit authenticated `/refresh` requests per client IP to reduce abusive Unsplash usage.
+- e8d9d43: Add client-side display settings persisted in `localStorage` (12/24-hour clock, timezone override, and visibility toggles).
+
+### Patch Changes
+
+- 43e38fb: Align Docker base images with Node.js 26 to match `.nvmrc` and GitHub Actions.
+- 3efee6a: Cap stored background images at 100 rows and prune oldest entries after each refresh.
+- e8d9d43: Clear the clock `setInterval` when the home page component is destroyed.
+- 9b99b88: Updated brace-expansion from 5.0.9 to 5.0.12 (version-update:semver-patch).
+- 09a21be: Updated devalue from 5.8.1 to 5.9.2 (version-update:semver-minor).
+- c1600f9: Updated @biomejs/biome, svelte, vite (version-update:semver-patch).
+- efcf42b: Updated @changesets/cli, @sveltejs/kit (version-update:semver-patch).
+- 057b44e: Updated @biomejs/biome (version-update:semver-patch).
+- cfc6335: Updated @sentry/sveltekit, @biomejs/biome, @types/node, lint-staged, svelte (version-update:semver-minor).
+- 3c63fc9: Updated @sentry/sveltekit, @types/node (version-update:semver-minor).
+- d5c03c2: Updated undici from 8.9.0 to 8.11.2 (version-update:semver-minor).
+- e8d9d43: Use HTTPS Google Maps search URLs for the location button.
+- e8d9d43: Declare `App.PageData` from the Drizzle `image` model for accurate SvelteKit page typing.
+- e988efd: Lower default Sentry performance trace sampling in production to 0.1, with optional override via `PUBLIC_SENTRY_TRACES_SAMPLE_RATE`.
+- 43e38fb: Migrate Biome configuration to schema 2.5.11 so `npm run lint` no longer reports a migration warning.
+- 43e38fb: Move `drizzle-kit` to devDependencies while keeping migrations working in the production Docker image.
+- 3e93d98: Rename the misspelled `unspashid` database column to `unsplash_id` and align Drizzle schema and application code.
+- f3f08f0: Self-host Lato via Fontsource and replace the Font Awesome kit with inline SVG icons.
+- a29a986: Add Umami integration for analytics.
+
 ## 0.1.3
 
 ### Patch Changes
