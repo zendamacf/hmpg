@@ -9,6 +9,7 @@ import {
   type UserSettings,
 } from '$lib/settings';
 import { timeParts } from '$lib/time';
+import { trackEvent } from '$lib/umami';
 import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();
@@ -65,7 +66,14 @@ onMount(() => {
     </div>
     {#if !photo}
       <p class="empty-message">No background photo is available right now.</p>
-      <button class="retry highlight" type="button" onclick={() => invalidateAll()}>
+      <button
+        class="retry highlight"
+        type="button"
+        onclick={() => {
+          trackEvent('photo-retry');
+          invalidateAll();
+        }}
+      >
         Try again
       </button>
     {/if}
@@ -76,7 +84,10 @@ onMount(() => {
       {#if settings.showLocation}
         <button
           class="location highlight"
-          onclick={() => window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener')}
+          onclick={() => {
+            trackEvent('outbound-link', { target: 'maps' });
+            window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener');
+          }}
         >
           <Icon name="map-marker" />
           &nbsp;
@@ -85,7 +96,13 @@ onMount(() => {
       {/if}
 
       {#if settings.showAttribution}
-        <button class="author highlight" onclick={() => window.open(photo.url ?? '', '_blank')}>
+        <button
+          class="author highlight"
+          onclick={() => {
+            trackEvent('outbound-link', { target: 'unsplash' });
+            window.open(photo.url ?? '', '_blank');
+          }}
+        >
           <Icon name="camera" />
           &nbsp;
           <span class="name">Taken by {photo.author_name} on Unsplash</span>
@@ -94,12 +111,14 @@ onMount(() => {
         {#if photo.author_instagram}
           <button
             class="author-instagram highlight"
-            onclick={() =>
+            onclick={() => {
+              trackEvent('outbound-link', { target: 'instagram' });
               window.open(
                 instagramUrl(photo.author_instagram ?? ''),
                 '_blank',
                 'noopener,noreferrer',
-              )}
+              );
+            }}
             aria-label="Instagram @{photo.author_instagram}"
           >
             <Icon name="instagram" />
@@ -116,6 +135,7 @@ onMount(() => {
       class="settings color-in"
       onclick={() => {
         showSettings = !showSettings;
+        trackEvent('settings-toggle', { open: showSettings });
       }}
       aria-expanded={showSettings}
       aria-label="Display settings"
@@ -135,8 +155,11 @@ onMount(() => {
           <input
             type="checkbox"
             checked={settings.hour12}
-            onchange={(event) =>
-              updateSettings({ hour12: (event.currentTarget as HTMLInputElement).checked })}
+            onchange={(event) => {
+              const hour12 = (event.currentTarget as HTMLInputElement).checked;
+              trackEvent('setting-change', { key: 'hour12', value: hour12 });
+              updateSettings({ hour12 });
+            }}
           />
           12-hour clock
         </label>
@@ -148,7 +171,9 @@ onMount(() => {
             value={settings.timezone ?? ''}
             oninput={(event) => {
               const value = (event.currentTarget as HTMLInputElement).value.trim();
-              updateSettings({ timezone: value === '' ? null : value });
+              const timezone = value === '' ? null : value;
+              trackEvent('setting-change', { key: 'timezone', value: timezone ?? '' });
+              updateSettings({ timezone });
             }}
           />
         </label>
@@ -156,8 +181,11 @@ onMount(() => {
           <input
             type="checkbox"
             checked={settings.showLocation}
-            onchange={(event) =>
-              updateSettings({ showLocation: (event.currentTarget as HTMLInputElement).checked })}
+            onchange={(event) => {
+              const showLocation = (event.currentTarget as HTMLInputElement).checked;
+              trackEvent('setting-change', { key: 'showLocation', value: showLocation });
+              updateSettings({ showLocation });
+            }}
           />
           Show location
         </label>
@@ -165,10 +193,11 @@ onMount(() => {
           <input
             type="checkbox"
             checked={settings.showAttribution}
-            onchange={(event) =>
-              updateSettings({
-                showAttribution: (event.currentTarget as HTMLInputElement).checked,
-              })}
+            onchange={(event) => {
+              const showAttribution = (event.currentTarget as HTMLInputElement).checked;
+              trackEvent('setting-change', { key: 'showAttribution', value: showAttribution });
+              updateSettings({ showAttribution });
+            }}
           />
           Show photo attribution
         </label>
@@ -177,7 +206,10 @@ onMount(() => {
 
     <button
       class="credit color-in"
-      onclick={() => window.open('https://github.com/zendamacf/hmpg', '_blank')}
+      onclick={() => {
+        trackEvent('outbound-link', { target: 'github' });
+        window.open('https://github.com/zendamacf/hmpg', '_blank');
+      }}
       aria-label="GitHub icon"
     >
       <span class="credit-icon">
