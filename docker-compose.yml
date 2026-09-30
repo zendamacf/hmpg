@@ -23,6 +23,8 @@ services:
       DATABASE_URL: postgresql://hmpg:${DB_PASSWORD:-hmpg}@postgres:5432/hmpg
       UNSPLASH_ACCESS_KEY: ${UNSPLASH_ACCESS_KEY}
       PUBLIC_SENTRY_DSN: ${PUBLIC_SENTRY_DSN:-}
+      PUBLIC_UMAMI_URL: ${PUBLIC_UMAMI_URL:-}
+      PUBLIC_UMAMI_WEBSITE_ID: ${PUBLIC_UMAMI_WEBSITE_ID:-}
       CRON_SECRET: ${CRON_SECRET}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       ORIGIN: ${ORIGIN:-https://hmpg.kalopsia.dev}
