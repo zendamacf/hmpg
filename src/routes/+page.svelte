@@ -230,8 +230,8 @@ onMount(() => {
   :global(.icon) {
     display: inline-block;
     vertical-align: middle;
-    width: 1.2em;
-    height: 1.2em;
+    font-size: 1.2em;
+    line-height: 1;
     flex-shrink: 0;
   }
   button {

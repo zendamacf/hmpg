@@ -2,6 +2,9 @@
 import { env } from '$env/dynamic/public';
 import '@fontsource/lato/400.css';
 import '@fontsource/lato/700.css';
+import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+import '@fortawesome/fontawesome-free/css/solid.min.css';
+import '@fortawesome/fontawesome-free/css/brands.min.css';
 import { umamiScriptSrc } from '$lib/umami';
 
 const { children } = $props();
