@@ -1,5 +1,13 @@
 # hmpg
 
+## 0.2.1
+
+### Patch Changes
+
+- e510fef: Updated @sentry/sveltekit, @fortawesome/fontawesome-free (version-update:semver-major).
+- ba9d4f0: Use self-hosted Font Awesome for UI icons instead of inline SVG paths.
+- 19df9b2: Fix cron refresh not working.
+
 ## 0.2.0
 
 ### Minor Changes
