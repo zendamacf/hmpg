@@ -16,19 +16,17 @@ Sentry.init({
 
 export const handle = sequence(sentryHandle(), logHandle);
 
-const sentryErrorHandler = handleErrorWithSentry();
-
-export const handleError: HandleServerError = async (input) => {
-  const { error, event, status, message } = input;
-  logger.error(
-    {
-      err: error,
-      method: event.request.method,
-      path: event.url.pathname,
-      status,
-      message,
-    },
-    'unhandled error',
-  );
-  return sentryErrorHandler(input);
-};
+export const handleError: HandleServerError = handleErrorWithSentry(
+  ({ error, event, status, message }) => {
+    logger.error(
+      {
+        err: error,
+        method: event.request.method,
+        path: event.url.pathname,
+        status,
+        message,
+      },
+      'unhandled error',
+    );
+  },
+);
