@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 const limit = vi.fn();
 const refreshImage = vi.fn();
 
-vi.mock('$lib/server/db', () => ({
+vi.mock('#lib/server/db/index.js', () => ({
   db: {
     select: vi.fn(() => ({
       from: vi.fn(() => ({
@@ -15,11 +15,11 @@ vi.mock('$lib/server/db', () => ({
   },
 }));
 
-vi.mock('$lib/server/refresh-image', () => ({
+vi.mock('#lib/server/refresh-image.js', () => ({
   refreshImage,
 }));
 
-vi.mock('$lib/server/logger', () => ({
+vi.mock('#lib/server/logger.js', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),

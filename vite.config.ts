@@ -1,5 +1,7 @@
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vite';
 
@@ -13,7 +15,14 @@ export default defineConfig(async () => {
         });
 
   return {
-    plugins: [...sentryPlugins, ...(await sveltekit()), svelteTesting()],
+    plugins: [
+      ...sentryPlugins,
+      ...(await sveltekit({
+        adapter: adapter(),
+        preprocess: vitePreprocess(),
+      })),
+      svelteTesting(),
+    ],
     test: {
       environment: 'node',
       setupFiles: ['./vitest-setup.ts'],

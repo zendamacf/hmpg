@@ -1,5 +1,5 @@
-import { dev } from '$app/environment';
-import { env } from '$env/dynamic/public';
+import { dev } from '$app/env';
+import { PUBLIC_SENTRY_TRACES_SAMPLE_RATE } from '$app/env/public';
 
 const DEFAULT_PRODUCTION_TRACES_SAMPLE_RATE = 0.1;
 
@@ -8,7 +8,7 @@ export const tracesSampleRate = (): number => {
     return 1.0;
   }
 
-  const configured = env.PUBLIC_SENTRY_TRACES_SAMPLE_RATE;
+  const configured = PUBLIC_SENTRY_TRACES_SAMPLE_RATE;
   if (configured === undefined || configured === '') {
     return DEFAULT_PRODUCTION_TRACES_SAMPLE_RATE;
   }

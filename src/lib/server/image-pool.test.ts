@@ -6,7 +6,7 @@ const orderBy = vi.fn();
 const limit = vi.fn();
 const deleteWhere = vi.fn();
 
-vi.mock('$lib/server/db', () => ({
+vi.mock('#lib/server/db/index.js', () => ({
   db: {
     select: vi.fn((shape) => {
       if (shape && 'total' in shape) {
@@ -20,7 +20,7 @@ vi.mock('$lib/server/db', () => ({
   },
 }));
 
-vi.mock('$lib/server/logger', () => ({
+vi.mock('#lib/server/logger.js', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -33,7 +33,7 @@ selectFrom.mockReturnValue({ orderBy });
 orderBy.mockReturnValue({ limit });
 
 const { MAX_STORED_IMAGES, pruneStoredImages } = await import('./image-pool');
-const { logger } = await import('$lib/server/logger');
+const { logger } = await import('#lib/server/logger.js');
 
 describe('pruneStoredImages', () => {
   beforeEach(() => {

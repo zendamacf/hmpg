@@ -1,5 +1,5 @@
-import type { Handle } from '@sveltejs/kit';
-import { logger } from '$lib/server/logger';
+import type { Handle } from '@sveltejs/kit/hooks';
+import { logger } from '#lib/server/logger.js';
 
 export const logHandle: Handle = async ({ event, resolve }) => {
   const path = event.url.pathname;

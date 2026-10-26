@@ -1,15 +1,15 @@
 <script lang="ts">
 import { onMount } from 'svelte';
-import { invalidateAll } from '$app/navigation';
-import Icon from '$lib/Icon.svelte';
+import Icon from '#lib/Icon.svelte';
 import {
   defaultUserSettings,
   loadUserSettings,
   saveUserSettings,
   type UserSettings,
-} from '$lib/settings';
-import { timeParts } from '$lib/time';
-import { trackEvent } from '$lib/umami';
+} from '#lib/settings.js';
+import { timeParts } from '#lib/time.js';
+import { trackEvent } from '#lib/umami.js';
+import { invalidateAll } from '$app/navigation';
 import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();

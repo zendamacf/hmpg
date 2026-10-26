@@ -1,7 +1,7 @@
-import { env } from '$env/dynamic/private';
-import { logger } from '$lib/server/logger';
-import { checkRateLimit } from '$lib/server/rate-limit';
-import { refreshImage } from '$lib/server/refresh-image';
+import { logger } from '#lib/server/logger.js';
+import { checkRateLimit } from '#lib/server/rate-limit.js';
+import { refreshImage } from '#lib/server/refresh-image.js';
+import { CRON_SECRET } from '$app/env/private';
 import type { RequestHandler } from './$types';
 
 const REFRESH_RATE_LIMIT = {
@@ -18,7 +18,7 @@ const clientIp = (request: Request): string => {
 };
 
 export const GET: RequestHandler = async ({ request }) => {
-  const secret = env.CRON_SECRET;
+  const secret = CRON_SECRET;
   if (!secret) throw new Error('CRON_SECRET is not set');
 
   const authorization = request.headers.get('Authorization');

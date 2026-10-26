@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { resetRateLimits } from '$lib/server/rate-limit';
+import { resetRateLimits } from '#lib/server/rate-limit.js';
 
 const getRandom = vi.fn();
 const returning = vi.fn();
@@ -7,21 +7,11 @@ const onConflictDoNothing = vi.fn();
 const values = vi.fn();
 const insert = vi.fn();
 
-vi.mock('$env/dynamic/private', () => ({
-  env: { CRON_SECRET: 'test-secret' },
-}));
+vi.mock('$app/env/private', () => ({ CRON_SECRET: 'test-secret' }));
+vi.mock('#lib/server/unsplash.js', () => ({ UnsplashAPI: { getRandom } }));
+vi.mock('#lib/server/db/index.js', () => ({ db: { insert } }));
 
-vi.mock('$lib/server/unsplash', () => ({
-  UnsplashAPI: { getRandom },
-}));
-
-vi.mock('$lib/server/db', () => ({
-  db: {
-    insert,
-  },
-}));
-
-vi.mock('$lib/server/logger', () => ({
+vi.mock('#lib/server/logger.js', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -30,7 +20,7 @@ vi.mock('$lib/server/logger', () => ({
   },
 }));
 
-vi.mock('$lib/server/image-pool', () => ({
+vi.mock('#lib/server/image-pool.js', () => ({
   pruneStoredImages: vi.fn().mockResolvedValue(0),
   MAX_STORED_IMAGES: 100,
 }));
@@ -151,13 +141,12 @@ describe('GET /refresh', () => {
   });
 
   it('throws when CRON_SECRET is unset', async () => {
-    const { env } = await import('$env/dynamic/private');
-    const previous = env.CRON_SECRET;
-    // Simulate missing env (runtime may omit the key entirely).
-    Reflect.deleteProperty(env, 'CRON_SECRET');
+    vi.resetModules();
+    vi.doMock('$app/env/private', () => ({ CRON_SECRET: '' }));
+    const { GET: getWithoutSecret } = await import('./+server');
 
-    await expect(GET(makeEvent('Bearer test-secret'))).rejects.toThrow('CRON_SECRET is not set');
-
-    env.CRON_SECRET = previous;
+    await expect(getWithoutSecret(makeEvent('Bearer test-secret'))).rejects.toThrow(
+      'CRON_SECRET is not set',
+    );
   });
 });

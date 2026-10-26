@@ -1,8 +1,8 @@
-import { db } from '$lib/server/db';
-import { image } from '$lib/server/db/schema';
-import { pruneStoredImages } from '$lib/server/image-pool';
-import { logger } from '$lib/server/logger';
-import { UnsplashAPI } from '$lib/server/unsplash';
+import { db } from '#lib/server/db/index.js';
+import { image } from '#lib/server/db/schema.js';
+import { pruneStoredImages } from '#lib/server/image-pool.js';
+import { logger } from '#lib/server/logger.js';
+import { UnsplashAPI } from '#lib/server/unsplash.js';
 
 const KEYWORDS = [
   'landscape',
