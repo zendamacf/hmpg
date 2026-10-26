@@ -2,7 +2,7 @@
 
 import { render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defaultUserSettings } from '$lib/settings';
+import { defaultUserSettings } from '#lib/settings.js';
 import Page from './+page.svelte';
 import type { PageProps } from './$types';
 

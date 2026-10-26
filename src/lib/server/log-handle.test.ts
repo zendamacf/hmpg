@@ -5,7 +5,7 @@ const info = vi.fn();
 const warn = vi.fn();
 const error = vi.fn();
 
-vi.mock('$lib/server/logger', () => ({
+vi.mock('#lib/server/logger.js', () => ({
   logger: { info, warn, error, debug: vi.fn() },
 }));
 

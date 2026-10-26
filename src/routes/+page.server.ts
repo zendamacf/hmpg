@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { image } from '$lib/server/db/schema';
-import { logger } from '$lib/server/logger';
-import { refreshImage } from '$lib/server/refresh-image';
+import { db } from '#lib/server/db/index.js';
+import { image } from '#lib/server/db/schema.js';
+import { logger } from '#lib/server/logger.js';
+import { refreshImage } from '#lib/server/refresh-image.js';
 import type { PageServerLoad } from './$types';
 
 const PAGE_LOAD_REFRESH_ATTEMPTS = 3;

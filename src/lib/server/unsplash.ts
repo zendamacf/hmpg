@@ -1,9 +1,9 @@
 import { type AssetFull, createApi } from 'unsplash-js';
-import { env } from '$env/dynamic/private';
+import { UNSPLASH_ACCESS_KEY } from '$app/env/private';
 
-if (!env.UNSPLASH_ACCESS_KEY) throw new Error('UNSPLASH_ACCESS_KEY is not set');
+if (!UNSPLASH_ACCESS_KEY) throw new Error('UNSPLASH_ACCESS_KEY is not set');
 
-const unsplash = createApi({ accessKey: env.UNSPLASH_ACCESS_KEY });
+const unsplash = createApi({ accessKey: UNSPLASH_ACCESS_KEY });
 
 interface UnsplashImage {
   id: string;

@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const unsplashGet = vi.fn();
 
-vi.mock('$env/dynamic/private', () => ({
-  env: { UNSPLASH_ACCESS_KEY: 'test-key' },
+vi.mock('$app/env/private', () => ({
+  UNSPLASH_ACCESS_KEY: 'test-key',
 }));
 
 vi.mock('unsplash-js', () => ({

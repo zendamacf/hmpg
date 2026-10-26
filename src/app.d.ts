@@ -1,5 +1,5 @@
 import type { InferSelectModel } from 'drizzle-orm';
-import type { image } from '$lib/server/db/schema';
+import type { image } from '#lib/server/db/schema.js';
 
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces

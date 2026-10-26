@@ -1,7 +1,7 @@
 import { asc, count, inArray } from 'drizzle-orm';
-import { db } from '$lib/server/db';
-import { image } from '$lib/server/db/schema';
-import { logger } from '$lib/server/logger';
+import { db } from '#lib/server/db/index.js';
+import { image } from '#lib/server/db/schema.js';
+import { logger } from '#lib/server/logger.js';
 
 /** Maximum rows kept in `image`; oldest rows (by `id`) are removed after refresh. */
 export const MAX_STORED_IMAGES = 100;
