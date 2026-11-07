@@ -1,5 +1,28 @@
 # hmpg
 
+## 0.2.2
+
+### Patch Changes
+
+- 917f397: Updated devalue from 5.9.2 to 5.9.4 (version-update:semver-patch).
+- 09a6a60: Updated @sentry/sveltekit, @sveltejs/vite-plugin-svelte, @types/node, @vitest/coverage-v8, lint-staged, vitest (version-update:semver-major).
+- af90711: Updated @types/node, @vitest/coverage-v8, vitest (version-update:semver-minor).
+- e255df1: Updated @biomejs/biome, @changesets/cli, @vitest/coverage-v8, lint-staged, vitest (version-update:semver-major).
+- 7f7d64d: Updated @types/node (version-update:semver-minor).
+- 8ab3d8b: Updated @changesets/cli (version-update:semver-patch).
+- 42c6fc3: Updated @sentry/sveltekit, @biomejs/biome, @types/node, jsdom, svelte (version-update:semver-minor).
+- 10a8b04: Updated @sentry/sveltekit, @biomejs/biome, @types/node, @vitest/coverage-v8, vitest (version-update:semver-minor).
+- 67ebe6d: Updated @sentry/sveltekit, drizzle-orm, drizzle-kit, jsdom (version-update:semver-patch).
+- 02b19e5, 5a9ac06: Updated @sentry/sveltekit (version-update:semver-minor).
+- f0393a5: Updated @types/node (version-update:semver-patch).
+- 8f87959: Updated @sentry/sveltekit, @biomejs/biome, @types/node, lint-staged, vite (version-update:semver-minor).
+- 893964d: Updated launch-editor from 2.14.1 to 2.14.2 (version-update:semver-patch).
+- f43d6ef: Updated cookie, @sveltejs/kit, @sveltejs/adapter-node.
+- 5666697: Updated shell-quote from 1.10.0 to 1.12.0 (version-update:semver-minor).
+- 1a18d86: Updated source-map-js from 1.2.1 to 1.2.2 (version-update:semver-patch).
+- 63e687e: Updated undici from 8.11.2 to 8.12.3 (version-update:semver-minor).
+- b114e6d: Updated vite from 8.3.0 to 8.3.4 (version-update:semver-patch).
+
 ## 0.2.1
 
 ### Patch Changes
