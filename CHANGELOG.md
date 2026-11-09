@@ -1,5 +1,17 @@
 # hmpg
 
+## 1.0.0
+
+### Major Changes
+
+- b6c55f5: Redesign home page with lower-third clock and glass settings.
+
+### Patch Changes
+
+- f3a4142: Fixed GitHub Actions publish workflow not running for GH Actions-created version tags.
+- 5f84a22: Updated minimatch, @sentry/sveltekit.
+- f412012: Updated glob, @sentry/sveltekit.
+
 ## 0.2.2
 
 ### Patch Changes
