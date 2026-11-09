@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { render, screen } from '@testing-library/svelte';
+import { fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { defaultUserSettings } from '#lib/settings.js';
 import Page from './+page.svelte';
@@ -83,21 +83,29 @@ describe('+page.svelte', () => {
     expect(screen.getByRole('button', { name: 'Instagram @janedoe' })).toBeInTheDocument();
   });
 
-  it('renders the clock from the current time', () => {
+  const clock = () => screen.getByRole('timer').textContent?.replace(/\s+/g, '');
+
+  it('renders the clock and date from the current time', () => {
     render(Page, { props: pageProps });
 
-    expect(screen.getByText('3:05:07')).toBeInTheDocument();
-    expect(screen.getByText('pm')).toBeInTheDocument();
+    expect(clock()).toBe('3:0507pm');
+    expect(screen.getByText('Monday, January 1')).toBeInTheDocument();
+  });
+
+  it('renders the photo coordinates next to the location', () => {
+    render(Page, { props: pageProps });
+
+    expect(screen.getByText('37.865° N, 119.538° W')).toBeInTheDocument();
   });
 
   it('updates the clock every second', async () => {
     render(Page, { props: pageProps });
 
-    expect(screen.getByText('3:05:07')).toBeInTheDocument();
+    expect(clock()).toBe('3:0507pm');
 
     await vi.advanceTimersByTimeAsync(1000);
 
-    expect(screen.getByText('3:05:08')).toBeInTheDocument();
+    expect(clock()).toBe('3:0508pm');
   });
 
   it('clears the clock interval on unmount', async () => {
@@ -163,7 +171,7 @@ describe('+page.svelte', () => {
 
     render(Page, { props: pageProps });
 
-    expect(screen.getByText('15:05:07')).toBeInTheDocument();
+    expect(clock()).toBe('15:0507');
     expect(screen.queryByText('Yosemite')).not.toBeInTheDocument();
     expect(screen.queryByText('Taken by Jane Doe on Unsplash')).not.toBeInTheDocument();
   });
@@ -174,7 +182,7 @@ describe('+page.svelte', () => {
     render(Page, { props: pageProps });
 
     expect(screen.getByText('Yosemite')).toBeInTheDocument();
-    expect(screen.getByText('3:05:07')).toBeInTheDocument();
+    expect(clock()).toBe('3:0507pm');
   });
 
   it('renders an empty state and retries via invalidateAll', async () => {
@@ -188,5 +196,55 @@ describe('+page.svelte', () => {
 
     await screen.getByRole('button', { name: 'Try again' }).click();
     expect(invalidateAll).toHaveBeenCalled();
+  });
+
+  describe('settings panel', () => {
+    const openPanel = async () => {
+      await screen.getByRole('button', { name: 'Display settings' }).click();
+    };
+
+    it('opens from the gear button and closes on Escape', async () => {
+      render(Page, { props: pageProps });
+      expect(screen.queryByRole('form', { name: 'Display settings' })).not.toBeInTheDocument();
+
+      await openPanel();
+      expect(screen.getByRole('form', { name: 'Display settings' })).toBeInTheDocument();
+
+      await fireEvent.keyDown(window, { key: 'Escape' });
+      expect(screen.queryByRole('form', { name: 'Display settings' })).not.toBeInTheDocument();
+    });
+
+    it('closes when clicking outside the panel', async () => {
+      render(Page, { props: pageProps });
+      await openPanel();
+
+      await fireEvent.pointerDown(document.body);
+      expect(screen.queryByRole('form', { name: 'Display settings' })).not.toBeInTheDocument();
+    });
+
+    it('switches to a 24-hour clock', async () => {
+      render(Page, { props: pageProps });
+      await openPanel();
+
+      await fireEvent.click(screen.getByRole('switch', { name: '12-hour clock' }));
+      expect(clock()).toBe('15:0507');
+    });
+
+    it('ignores incomplete time zones and applies valid ones', async () => {
+      render(Page, { props: pageProps });
+      await openPanel();
+      const input = screen.getByLabelText(/Time zone/);
+
+      await fireEvent.input(input, { target: { value: 'Eur' } });
+      expect(screen.getByText(/Choose a name from the list/)).toBeInTheDocument();
+      expect(clock()).toBe('3:0507pm');
+      expect(storage.get('hmpg:user-settings')).toBeUndefined();
+
+      await fireEvent.input(input, { target: { value: 'Pacific/Auckland' } });
+      expect(screen.queryByText(/Choose a name from the list/)).not.toBeInTheDocument();
+      expect(JSON.parse(storage.get('hmpg:user-settings') ?? '{}').timezone).toBe(
+        'Pacific/Auckland',
+      );
+    });
   });
 });

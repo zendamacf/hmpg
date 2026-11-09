@@ -35,3 +35,29 @@ export const timeParts = (d: Date, options: TimeFormatOptions = {}): TimeParts =
     ampm: hour12 && (dayPeriod === 'am' || dayPeriod === 'pm') ? dayPeriod : '',
   };
 };
+
+export const isValidTimeZone = (timeZone: string): boolean => {
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const dateLabel = (d: Date, options: TimeFormatOptions = {}): string =>
+  new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    timeZone: options.timeZone ?? undefined,
+  }).format(d);
+
+export const supportedTimeZones = (): string[] => {
+  const intl = Intl as typeof Intl & { supportedValuesOf?: (key: string) => string[] };
+  try {
+    return intl.supportedValuesOf?.('timeZone') ?? [];
+  } catch {
+    return [];
+  }
+};
