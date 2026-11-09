@@ -1,5 +1,11 @@
 # hmpg
 
+## 1.0.1
+
+### Patch Changes
+
+- 1f8a401: Fix Docker built package failing due to accessing dropped Svelte `$app/stores`.
+
 ## 1.0.0
 
 ### Major Changes
