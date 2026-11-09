@@ -6,13 +6,12 @@ import { svelteTesting } from '@testing-library/svelte/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig(async () => {
-  const sentryPlugins =
-    process.env.VITEST || process.env.DOCKER_BUILD
-      ? []
-      : await sentrySvelteKit({
-          org: 'kalopsiadev',
-          project: 'hmpg',
-        });
+  const sentryPlugins = process.env.VITEST
+    ? []
+    : await sentrySvelteKit({
+        org: 'kalopsiadev',
+        project: 'hmpg',
+      });
 
   return {
     plugins: [
