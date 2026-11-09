@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { timeParts } from './time';
+import { dateLabel, isValidTimeZone, supportedTimeZones, timeParts } from './time';
 
 describe('timeParts', () => {
   it('formats afternoon times with pm', () => {
@@ -70,5 +70,29 @@ describe('timeParts', () => {
     });
 
     formatToParts.mockRestore();
+  });
+});
+
+describe('dateLabel', () => {
+  it('formats weekday, month and day', () => {
+    expect(dateLabel(new Date(2024, 0, 1, 12))).toBe('Monday, January 1');
+  });
+
+  it('respects the time zone', () => {
+    const d = new Date(Date.UTC(2024, 0, 1, 23, 0, 0));
+    expect(dateLabel(d, { timeZone: 'Pacific/Auckland' })).toBe('Tuesday, January 2');
+  });
+});
+
+describe('isValidTimeZone', () => {
+  it('accepts IANA names and rejects partial input', () => {
+    expect(isValidTimeZone('Europe/London')).toBe(true);
+    expect(isValidTimeZone('Eur')).toBe(false);
+  });
+});
+
+describe('supportedTimeZones', () => {
+  it('lists IANA zones in this runtime', () => {
+    expect(supportedTimeZones()).toContain('Europe/London');
   });
 });
