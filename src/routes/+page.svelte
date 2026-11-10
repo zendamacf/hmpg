@@ -36,6 +36,11 @@ const mapsUrl = (latitude: string | null, longitude: string | null) => {
 
 const instagramUrl = (username: string) => `https://instagram.com/${username}`;
 
+const unsplashPhotoUrl = (unsplashId: string | null) =>
+  unsplashId
+    ? `https://unsplash.com/photos/${unsplashId}?utm_source=hmpg&utm_medium=referral`
+    : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
+
 let time = $state(timeParts(new Date()));
 let date = $state(dateLabel(new Date()));
 
@@ -183,7 +188,7 @@ onMount(() => {
           class="link"
           onclick={() => {
             trackEvent('outbound-link', { target: 'unsplash' });
-            window.open(photo.url ?? '', '_blank');
+            window.open(unsplashPhotoUrl(photo.unsplash_id), '_blank', 'noopener');
           }}
         >
           <Icon name="camera" />

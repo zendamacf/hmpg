@@ -130,12 +130,16 @@ describe('+page.svelte', () => {
     );
   });
 
-  it('opens the photo URL when the author button is clicked', async () => {
+  it('opens the Unsplash photo page when the author button is clicked', async () => {
     render(Page, { props: pageProps });
 
     await screen.getByRole('button', { name: /Taken by Jane Doe/i }).click();
 
-    expect(open).toHaveBeenCalledWith('https://example.com/photo.jpg', '_blank');
+    expect(open).toHaveBeenCalledWith(
+      'https://unsplash.com/photos/photo-1?utm_source=hmpg&utm_medium=referral',
+      '_blank',
+      'noopener',
+    );
   });
 
   it('opens Instagram when the Instagram button is clicked', async () => {
