@@ -33,6 +33,7 @@ export async function refreshImage(trigger: 'cron' | 'page-load' = 'cron') {
       longitude: photo.location.longitude?.toString(),
       location: photo.location.name,
       author_name: photo.author.name,
+      author_username: photo.author.username,
       author_instagram: photo.author.instagram,
       url: photo.urls.full,
     })

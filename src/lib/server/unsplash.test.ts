@@ -19,6 +19,7 @@ const photoWithCoords = {
   urls: { full: 'https://example.com/full.jpg', regular: 'https://example.com/regular.jpg' },
   user: {
     name: 'Jane Doe',
+    username: 'janedoe_photo',
     first_name: 'Jane',
     last_name: 'Doe',
     social: { instagram_username: 'janedoe' },
@@ -54,7 +55,7 @@ describe('UnsplashAPI.getRandom', () => {
         full: 'https://example.com/full.jpg',
         regular: 'https://example.com/regular.jpg',
       },
-      author: { name: 'Jane Doe', instagram: 'janedoe' },
+      author: { name: 'Jane Doe', username: 'janedoe_photo', instagram: 'janedoe' },
       location: {
         name: 'Yosemite',
         latitude: 37.8651,

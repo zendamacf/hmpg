@@ -36,6 +36,16 @@ const mapsUrl = (latitude: string | null, longitude: string | null) => {
 
 const instagramUrl = (username: string) => `https://instagram.com/${username}`;
 
+const unsplashAuthorUrl = (username: string | null) =>
+  username
+    ? `https://unsplash.com/@${username}?utm_source=hmpg&utm_medium=referral`
+    : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
+
+const unsplashPhotoUrl = (unsplashId: string | null) =>
+  unsplashId
+    ? `https://unsplash.com/photos/${unsplashId}?utm_source=hmpg&utm_medium=referral`
+    : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
+
 let time = $state(timeParts(new Date()));
 let date = $state(dateLabel(new Date()));
 
@@ -179,16 +189,35 @@ onMount(() => {
 
     <div class="trailing">
       {#if photo && settings.showAttribution}
-        <button
-          class="link"
-          onclick={() => {
-            trackEvent('outbound-link', { target: 'unsplash' });
-            window.open(photo.url ?? '', '_blank');
-          }}
-        >
+        <span class="link credit">
           <Icon name="camera" />
-          <span class="name">Taken by {photo.author_name} on Unsplash</span>
-        </button>
+          <span class="name">
+            Taken by
+            {#if photo.author_username}
+              <button
+                class="inline"
+                onclick={() => {
+                  trackEvent('outbound-link', { target: 'unsplash-author' });
+                  window.open(unsplashAuthorUrl(photo.author_username), '_blank', 'noopener');
+                }}
+              >
+                {photo.author_name}
+              </button>
+            {:else}
+              {photo.author_name}
+            {/if}
+            on
+            <button
+              class="inline"
+              onclick={() => {
+                trackEvent('outbound-link', { target: 'unsplash' });
+                window.open(unsplashPhotoUrl(photo.unsplash_id), '_blank', 'noopener');
+              }}
+            >
+              Unsplash
+            </button>
+          </span>
+        </span>
 
         {#if photo.author_instagram}
           <button
@@ -596,6 +625,21 @@ onMount(() => {
   .link {
     font-size: 0.95rem;
     color: var(--mist);
+
+    &:hover {
+      color: var(--snow);
+    }
+  }
+
+  .credit:hover {
+    background: none;
+  }
+
+  .inline {
+    padding: 0;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
 
     &:hover {
       color: var(--snow);
