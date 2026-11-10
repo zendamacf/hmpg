@@ -7,6 +7,7 @@ export const image = pgTable('image', {
   longitude: numeric('longitude'),
   location: text('location'),
   author_name: text('author_name'),
+  author_username: text('author_username'),
   author_instagram: text('author_instagram'),
   url: text('url'),
 });

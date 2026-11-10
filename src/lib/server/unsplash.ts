@@ -13,6 +13,7 @@ interface UnsplashImage {
   };
   author: {
     name: string;
+    username: string;
     instagram: string | null;
   };
   location: {
@@ -51,6 +52,7 @@ const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
     },
     author: {
       name: raw.user.name,
+      username: raw.user.username,
       instagram: raw.user.social.instagram_username,
     },
     location: {

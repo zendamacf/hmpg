@@ -21,6 +21,7 @@ const photo = {
   longitude: '-119.5383',
   location: 'Yosemite',
   author_name: 'Jane Doe',
+  author_username: 'janedoe_photo',
   author_instagram: 'janedoe',
   unsplash_id: 'photo-1',
 };
@@ -79,7 +80,8 @@ describe('+page.svelte', () => {
     const background = container.querySelector('.background');
     expect(background).toHaveStyle({ '--image-url': 'url(https://example.com/photo.jpg)' });
     expect(screen.getByText('Yosemite')).toBeInTheDocument();
-    expect(screen.getByText('Taken by Jane Doe on Unsplash')).toBeInTheDocument();
+    expect(screen.getByText(/Taken by/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Jane Doe' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Instagram @janedoe' })).toBeInTheDocument();
   });
 
@@ -130,10 +132,34 @@ describe('+page.svelte', () => {
     );
   });
 
-  it('opens the Unsplash photo page when the author button is clicked', async () => {
+  it('opens the Unsplash author profile when the author name is clicked', async () => {
     render(Page, { props: pageProps });
 
-    await screen.getByRole('button', { name: /Taken by Jane Doe/i }).click();
+    await screen.getByRole('button', { name: 'Jane Doe' }).click();
+
+    expect(open).toHaveBeenCalledWith(
+      'https://unsplash.com/@janedoe_photo?utm_source=hmpg&utm_medium=referral',
+      '_blank',
+      'noopener',
+    );
+  });
+
+  it('shows the author name as plain text when there is no username', () => {
+    render(Page, {
+      props: {
+        ...pageProps,
+        data: { photo: { ...photo, author_username: null } },
+      },
+    });
+
+    expect(screen.queryByRole('button', { name: 'Jane Doe' })).not.toBeInTheDocument();
+    expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
+  });
+
+  it('opens the Unsplash photo page when Unsplash is clicked', async () => {
+    render(Page, { props: pageProps });
+
+    await screen.getByRole('button', { name: 'Unsplash' }).click();
 
     expect(open).toHaveBeenCalledWith(
       'https://unsplash.com/photos/photo-1?utm_source=hmpg&utm_medium=referral',
@@ -177,7 +203,7 @@ describe('+page.svelte', () => {
 
     expect(clock()).toBe('15:0507');
     expect(screen.queryByText('Yosemite')).not.toBeInTheDocument();
-    expect(screen.queryByText('Taken by Jane Doe on Unsplash')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Taken by/)).not.toBeInTheDocument();
   });
 
   it('falls back to defaults when localStorage is corrupt', () => {

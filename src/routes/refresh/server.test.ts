@@ -44,7 +44,7 @@ const unsplashPhoto = {
     full: 'https://example.com/full.jpg',
     regular: 'https://example.com/regular.jpg',
   },
-  author: { name: 'Jane Doe', instagram: 'janedoe' },
+  author: { name: 'Jane Doe', username: 'janedoe_photo', instagram: 'janedoe' },
   location: {
     name: 'Yosemite',
     latitude: 37.8651,
@@ -101,6 +101,7 @@ describe('GET /refresh', () => {
       longitude: '-119.5383',
       location: 'Yosemite',
       author_name: 'Jane Doe',
+      author_username: 'janedoe_photo',
       author_instagram: 'janedoe',
       url: 'https://example.com/full.jpg',
     });
