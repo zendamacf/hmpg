@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { dateLabel, isValidTimeZone, supportedTimeZones, timeParts } from './time';
+import { dateLabel, dayNumber, isValidTimeZone, supportedTimeZones, timeParts } from './time';
 
 describe('timeParts', () => {
   it('formats afternoon times with pm', () => {
@@ -94,5 +94,19 @@ describe('isValidTimeZone', () => {
 describe('supportedTimeZones', () => {
   it('lists IANA zones in this runtime', () => {
     expect(supportedTimeZones()).toContain('Europe/London');
+  });
+});
+
+describe('dayNumber', () => {
+  it('counts days since the epoch', () => {
+    expect(dayNumber(new Date(Date.UTC(1970, 0, 1, 12)), { timeZone: 'UTC' })).toBe(0);
+    expect(dayNumber(new Date(Date.UTC(1970, 0, 2, 12)), { timeZone: 'UTC' })).toBe(1);
+  });
+
+  it('follows the time zone date', () => {
+    const d = new Date(Date.UTC(2024, 0, 1, 23, 0, 0));
+    expect(dayNumber(d, { timeZone: 'Pacific/Auckland' })).toBe(
+      dayNumber(d, { timeZone: 'UTC' }) + 1,
+    );
   });
 });

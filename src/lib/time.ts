@@ -61,3 +61,15 @@ export const supportedTimeZones = (): string[] => {
     return [];
   }
 };
+
+/** Whole days since 1970-01-01 for the calendar date in the given time zone. */
+export const dayNumber = (d: Date, options: TimeFormatOptions = {}): number => {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    timeZone: options.timeZone ?? undefined,
+  }).formatToParts(d);
+  const part = (type: string) => Number(parts.find((p) => p.type === type)?.value);
+  return Math.floor(Date.UTC(part('year'), part('month') - 1, part('day')) / 86_400_000);
+};

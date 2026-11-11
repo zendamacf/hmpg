@@ -37,7 +37,7 @@ Run a single test: `npx vitest run src/lib/time.test.ts` (add `-t "name"` to fil
 - **Env**: variables are declared in `src/env.ts` (`defineEnvVars`) and imported from `$app/env/private` or `$app/env/public`. Add new variables there.
 - **Photos**: the home page loads a random row from the `image` table. If the table is empty, it refreshes from Unsplash with retries. `refreshImage` fetches new photos. `image-pool` keeps at most `MAX_STORED_IMAGES` (100) rows and prunes the oldest.
 - **Cron**: `GET /refresh` is a public route. It must verify `Authorization: Bearer <CRON_SECRET>` itself, and it is rate limited. The Compose `cron` sidecar calls it daily (`docker/crontab`).
-- **Settings**: user settings (12-hour clock, timezone, show attribution and location) live in the browser's local storage (`src/lib/settings.ts`), not in the database.
+- **Settings**: user settings (12-hour clock, timezone, show attribution, location, greeting and daily quote) live in the browser's local storage (`src/lib/settings.ts`), not in the database.
 - **Database**: schema in `src/lib/server/db/schema.ts`. Migrations in `drizzle/` are generated. Never hand-edit the SQL, snapshots or journal.
 - **Observability**: Sentry and Umami are optional and must work without configuration. Logging uses pino (`src/lib/server/logger.ts`).
 - **Docker**: the multi-stage `Dockerfile` builds the SvelteKit `build/` output. `docker/entrypoint.sh` applies migrations (a bundled `migrate.mjs`) before it starts the server. The CI `deploy-smoke` job builds the image, starts the Compose stack and checks the main routes.

@@ -2,6 +2,7 @@
 
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { quoteForDay } from '#lib/quotes.js';
 import { defaultUserSettings } from '#lib/settings.js';
 import Page from './+page.svelte';
 import type { PageProps } from './$types';
@@ -206,6 +207,28 @@ describe('+page.svelte', () => {
     expect(screen.queryByText(/Taken by/)).not.toBeInTheDocument();
   });
 
+  it('shows the greeting and daily quote by default', () => {
+    render(Page, { props: pageProps });
+
+    const quote = quoteForDay(new Date(2024, 0, 1, 15, 5, 7));
+    expect(screen.getByText('Good afternoon')).toBeInTheDocument();
+    expect(screen.getByText(quote.text)).toBeInTheDocument();
+    expect(screen.getByText(quote.author)).toBeInTheDocument();
+  });
+
+  it('hides the greeting and quote when settings turn them off', () => {
+    localStorageMock.setItem(
+      'hmpg:user-settings',
+      JSON.stringify({ ...defaultUserSettings, showGreeting: false, showQuote: false }),
+    );
+
+    render(Page, { props: pageProps });
+
+    const quote = quoteForDay(new Date(2024, 0, 1, 15, 5, 7));
+    expect(screen.queryByText('Good afternoon')).not.toBeInTheDocument();
+    expect(screen.queryByText(quote.text)).not.toBeInTheDocument();
+  });
+
   it('falls back to defaults when localStorage is corrupt', () => {
     localStorageMock.setItem('hmpg:user-settings', '{bad json');
 
@@ -250,6 +273,31 @@ describe('+page.svelte', () => {
 
       await fireEvent.pointerDown(document.body);
       expect(screen.queryByRole('form', { name: 'Display settings' })).not.toBeInTheDocument();
+    });
+
+    it('toggles the greeting and saves the setting', async () => {
+      render(Page, { props: pageProps });
+      await openPanel();
+
+      await fireEvent.click(screen.getByRole('switch', { name: 'Show greeting' }));
+      expect(screen.queryByText('Good afternoon')).not.toBeInTheDocument();
+      expect(JSON.parse(storage.get('hmpg:user-settings') ?? '{}').showGreeting).toBe(false);
+
+      await fireEvent.click(screen.getByRole('switch', { name: 'Show greeting' }));
+      expect(screen.getByText('Good afternoon')).toBeInTheDocument();
+    });
+
+    it('toggles the daily quote and saves the setting', async () => {
+      render(Page, { props: pageProps });
+      const quote = quoteForDay(new Date(2024, 0, 1, 15, 5, 7));
+      await openPanel();
+
+      await fireEvent.click(screen.getByRole('switch', { name: 'Show daily quote' }));
+      expect(screen.queryByText(quote.text)).not.toBeInTheDocument();
+      expect(JSON.parse(storage.get('hmpg:user-settings') ?? '{}').showQuote).toBe(false);
+
+      await fireEvent.click(screen.getByRole('switch', { name: 'Show daily quote' }));
+      expect(screen.getByText(quote.text)).toBeInTheDocument();
     });
 
     it('switches to a 24-hour clock', async () => {

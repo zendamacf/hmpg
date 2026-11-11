@@ -3,6 +3,8 @@ export type UserSettings = {
   timezone: string | null;
   showAttribution: boolean;
   showLocation: boolean;
+  showGreeting: boolean;
+  showQuote: boolean;
 };
 
 export const defaultUserSettings: UserSettings = {
@@ -10,6 +12,8 @@ export const defaultUserSettings: UserSettings = {
   timezone: null,
   showAttribution: true,
   showLocation: true,
+  showGreeting: true,
+  showQuote: true,
 };
 
 const STORAGE_KEY = 'hmpg:user-settings';
@@ -35,6 +39,12 @@ export const parseUserSettings = (raw: string | null): UserSettings => {
         typeof parsed.showLocation === 'boolean'
           ? parsed.showLocation
           : defaultUserSettings.showLocation,
+      showGreeting:
+        typeof parsed.showGreeting === 'boolean'
+          ? parsed.showGreeting
+          : defaultUserSettings.showGreeting,
+      showQuote:
+        typeof parsed.showQuote === 'boolean' ? parsed.showQuote : defaultUserSettings.showQuote,
     };
   } catch {
     return defaultUserSettings;
