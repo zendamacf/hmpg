@@ -86,6 +86,85 @@ describe('+page.svelte', () => {
     expect(screen.getByRole('button', { name: 'Instagram @janedoe' })).toBeInTheDocument();
   });
 
+  describe('pin and favorite', () => {
+    const other = { ...photo, id: 2, unsplash_id: 'photo-2', url: 'https://example.com/other.jpg' };
+    const backgroundUrl = (container: HTMLElement) =>
+      (container.querySelector('.background') as HTMLElement).style.getPropertyValue('--image-url');
+
+    it('pins the photo and saves it to local storage', async () => {
+      render(Page, { props: pageProps });
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Pin photo' }));
+
+      expect(screen.getByRole('button', { name: 'Unpin photo' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(JSON.parse(storage.get('hmpg:photo-picks') ?? '{}').pinned.id).toBe(1);
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Unpin photo' }));
+      expect(JSON.parse(storage.get('hmpg:photo-picks') ?? '{}').pinned).toBeNull();
+    });
+
+    it('favorites the photo and saves it to local storage', async () => {
+      render(Page, { props: pageProps });
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Add photo to favorites' }));
+
+      expect(screen.getByRole('button', { name: 'Remove photo from favorites' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      );
+      expect(JSON.parse(storage.get('hmpg:photo-picks') ?? '{}').favorites).toHaveLength(1);
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Remove photo from favorites' }));
+      expect(JSON.parse(storage.get('hmpg:photo-picks') ?? '{}').favorites).toEqual([]);
+    });
+
+    it('shows the pinned photo on load, even when the server sent another one', () => {
+      storage.set('hmpg:photo-picks', JSON.stringify({ pinned: other, favorites: [] }));
+
+      const { container } = render(Page, { props: pageProps });
+
+      expect(backgroundUrl(container)).toBe('url(https://example.com/other.jpg)');
+      expect(screen.getByRole('button', { name: 'Unpin photo' })).toBeInTheDocument();
+    });
+
+    it('shows a pinned photo that the server no longer has', () => {
+      storage.set('hmpg:photo-picks', JSON.stringify({ pinned: other, favorites: [] }));
+
+      const { container } = render(Page, { props: { ...pageProps, data: { photo: null } } });
+
+      expect(backgroundUrl(container)).toBe('url(https://example.com/other.jpg)');
+    });
+
+    it('shows a favorite on load some of the time', () => {
+      storage.set('hmpg:photo-picks', JSON.stringify({ pinned: null, favorites: [other] }));
+      const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+
+      const { container } = render(Page, { props: pageProps });
+
+      expect(backgroundUrl(container)).toBe('url(https://example.com/other.jpg)');
+      random.mockRestore();
+    });
+
+    it('keeps the server photo when no favorite is drawn', () => {
+      storage.set('hmpg:photo-picks', JSON.stringify({ pinned: null, favorites: [other] }));
+      const random = vi.spyOn(Math, 'random').mockReturnValue(0.9);
+
+      const { container } = render(Page, { props: pageProps });
+
+      expect(backgroundUrl(container)).toBe('url(https://example.com/photo.jpg)');
+      random.mockRestore();
+    });
+
+    it('hides the buttons when there is no photo', () => {
+      render(Page, { props: { ...pageProps, data: { photo: null } } });
+
+      expect(screen.queryByRole('button', { name: 'Pin photo' })).not.toBeInTheDocument();
+    });
+  });
+
   const clock = () => screen.getByRole('timer').textContent?.replace(/\s+/g, '');
 
   it('renders the clock and date from the current time', () => {

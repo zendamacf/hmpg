@@ -1,9 +1,21 @@
 <script lang="ts">
 import type { WeatherIconName } from './weather';
 
-export type IconName = 'map-marker' | 'camera' | 'instagram' | 'cog' | 'github' | WeatherIconName;
+export type IconName =
+  | 'map-marker'
+  | 'camera'
+  | 'instagram'
+  | 'cog'
+  | 'github'
+  | 'pin'
+  | 'heart'
+  | 'heart-outline'
+  | WeatherIconName;
 
 const iconClass: Record<IconName, string> = {
+  pin: 'fa-solid fa-thumbtack',
+  heart: 'fa-solid fa-heart',
+  'heart-outline': 'fa-regular fa-heart',
   'map-marker': 'fa-solid fa-location-dot',
   camera: 'fa-solid fa-camera',
   instagram: 'fa-brands fa-instagram',
