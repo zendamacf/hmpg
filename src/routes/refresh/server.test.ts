@@ -30,6 +30,7 @@ onConflictDoNothing.mockReturnValue({ returning });
 insert.mockReturnValue({ values });
 
 const { GET } = await import('./+server');
+const { KEYWORDS } = await import('#lib/server/refresh-image.js');
 
 const makeEvent = (authorization?: string) =>
   ({
@@ -40,6 +41,7 @@ const makeEvent = (authorization?: string) =>
 
 const unsplashPhoto = {
   id: 'photo-1',
+  tag: 'mountain',
   urls: {
     full: 'https://example.com/full.jpg',
     regular: 'https://example.com/regular.jpg',
@@ -51,6 +53,38 @@ const unsplashPhoto = {
     longitude: -119.5383,
   },
 };
+
+describe('KEYWORDS', () => {
+  it('keeps the original search keywords', () => {
+    expect(KEYWORDS).toEqual(
+      expect.arrayContaining([
+        'landscape',
+        'water',
+        'aerial',
+        'places',
+        'city',
+        'sunset',
+        'flowers',
+        'snow',
+        'temple',
+        'mountain',
+        'wanderlust',
+      ]),
+    );
+  });
+
+  it('adds new keywords', () => {
+    expect(KEYWORDS.length).toBeGreaterThan(11);
+    expect(KEYWORDS).toEqual(expect.arrayContaining(['forest', 'beach', 'desert', 'aurora']));
+  });
+
+  it('uses short, lowercase, unique keywords, because they are shown as topic names', () => {
+    expect(new Set(KEYWORDS).size).toBe(KEYWORDS.length);
+    for (const keyword of KEYWORDS) {
+      expect(keyword).toMatch(/^[a-z]{3,20}$/);
+    }
+  });
+});
 
 describe('GET /refresh', () => {
   beforeEach(() => {
@@ -82,19 +116,7 @@ describe('GET /refresh', () => {
   it('fetches from Unsplash and inserts into the database', async () => {
     const response = await GET(makeEvent('Bearer test-secret'));
 
-    expect(getRandom).toHaveBeenCalledWith([
-      'landscape',
-      'water',
-      'aerial',
-      'places',
-      'city',
-      'sunset',
-      'flowers',
-      'snow',
-      'temple',
-      'mountain',
-      'wanderlust',
-    ]);
+    expect(getRandom).toHaveBeenCalledWith(KEYWORDS);
     expect(values).toHaveBeenCalledWith({
       unsplash_id: 'photo-1',
       latitude: '37.8651',
@@ -104,6 +126,7 @@ describe('GET /refresh', () => {
       author_username: 'janedoe_photo',
       author_instagram: 'janedoe',
       url: 'https://example.com/full.jpg',
+      tag: 'mountain',
     });
     expect(onConflictDoNothing).toHaveBeenCalled();
     expect(returning).toHaveBeenCalled();

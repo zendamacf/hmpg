@@ -25,11 +25,12 @@ const photo = {
   author_username: 'janedoe_photo',
   author_instagram: 'janedoe',
   unsplash_id: 'photo-1',
+  tag: 'mountain',
 };
 
 const pageProps: PageProps = {
   params: {},
-  data: { photo },
+  data: { topics: [], photo },
   form: undefined,
 };
 
@@ -133,7 +134,9 @@ describe('+page.svelte', () => {
     it('shows a pinned photo that the server no longer has', () => {
       storage.set('hmpg:photo-picks', JSON.stringify({ pinned: other, favorites: [] }));
 
-      const { container } = render(Page, { props: { ...pageProps, data: { photo: null } } });
+      const { container } = render(Page, {
+        props: { ...pageProps, data: { topics: [], photo: null } },
+      });
 
       expect(backgroundUrl(container)).toBe('url(https://example.com/other.jpg)');
     });
@@ -159,7 +162,7 @@ describe('+page.svelte', () => {
     });
 
     it('hides the buttons when there is no photo', () => {
-      render(Page, { props: { ...pageProps, data: { photo: null } } });
+      render(Page, { props: { ...pageProps, data: { topics: [], photo: null } } });
 
       expect(screen.queryByRole('button', { name: 'Pin photo' })).not.toBeInTheDocument();
     });
@@ -228,7 +231,7 @@ describe('+page.svelte', () => {
     render(Page, {
       props: {
         ...pageProps,
-        data: { photo: { ...photo, author_username: null } },
+        data: { topics: [], photo: { ...photo, author_username: null } },
       },
     });
 
@@ -319,7 +322,7 @@ describe('+page.svelte', () => {
 
   it('renders an empty state and retries via invalidateAll', async () => {
     const { container } = render(Page, {
-      props: { ...pageProps, data: { photo: null } },
+      props: { ...pageProps, data: { topics: [], photo: null } },
     });
 
     expect(screen.getByText(/No background photo is available/i)).toBeInTheDocument();
@@ -522,7 +525,10 @@ describe('+page.svelte', () => {
     it('shows no photo weather when the photo has no coordinates', async () => {
       allow();
       const { container } = render(Page, {
-        props: { ...pageProps, data: { photo: { ...photo, latitude: null, longitude: null } } },
+        props: {
+          ...pageProps,
+          data: { topics: [], photo: { ...photo, latitude: null, longitude: null } },
+        },
       });
 
       expect(await screen.findByText('21°')).toBeInTheDocument();
@@ -694,6 +700,226 @@ describe('+page.svelte', () => {
 
       expect(await screen.findByText('4°')).toBeInTheDocument();
       expect(container.querySelector('.here .fa-moon')).not.toBeNull();
+    });
+  });
+
+  describe('photo topics', () => {
+    const topics = ['city', 'mountain', 'night sky', 'snow'];
+    const withTopics = (available: string[] = topics) => ({
+      ...pageProps,
+      data: { photo, topics: available },
+    });
+    const cookie = () => document.cookie;
+    const savedTopics = () => JSON.parse(storage.get('hmpg:user-settings') ?? '{}').topics;
+    const chip = (name: string) => screen.getByRole('button', { name });
+
+    const openPanel = async () => {
+      await screen.getByRole('button', { name: 'Display settings' }).click();
+    };
+
+    const clearCookie = () => {
+      document.cookie = 'hmpg-topics=; path=/; max-age=0';
+    };
+
+    beforeEach(() => {
+      clearCookie();
+    });
+
+    afterEach(() => {
+      clearCookie();
+    });
+
+    it('explains that there are no topics yet', async () => {
+      render(Page, { props: withTopics([]) });
+      await openPanel();
+
+      expect(screen.getByText('Topics show up as new photos are added.')).toBeInTheDocument();
+      expect(screen.queryByRole('group', { name: 'Photo topics' })).not.toBeInTheDocument();
+    });
+
+    it('lists the tags that photos have, with all topics on by default', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      expect(screen.getByText('All topics')).toBeInTheDocument();
+      const group = screen.getByRole('group', { name: 'Photo topics' });
+      expect(
+        Array.from(group.querySelectorAll('button')).map((b) => b.textContent?.trim()),
+      ).toEqual(['City', 'Mountain', 'Night sky', 'Snow']);
+      for (const button of group.querySelectorAll('button')) {
+        expect(button).toHaveAttribute('aria-pressed', 'false');
+      }
+    });
+
+    it('has no way to type a topic', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      const group = screen.getByRole('group', { name: 'Photo topics' });
+      expect(group.querySelector('input')).toBeNull();
+    });
+
+    it('saves the choice in settings and in the cookie', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      await fireEvent.click(chip('Snow'));
+      await fireEvent.click(chip('Night sky'));
+
+      expect(chip('Snow')).toHaveAttribute('aria-pressed', 'true');
+      expect(chip('Night sky')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByText('2 chosen')).toBeInTheDocument();
+      expect(savedTopics()).toEqual(['snow', 'night sky']);
+      expect(cookie()).toContain('hmpg-topics=snow%2Cnight%20sky');
+    });
+
+    it('loads a new photo once, after the last choice', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+      invalidateAll.mockClear();
+
+      await fireEvent.click(chip('Snow'));
+      await fireEvent.click(chip('City'));
+      expect(invalidateAll).not.toHaveBeenCalled();
+
+      await vi.advanceTimersByTimeAsync(700);
+      expect(invalidateAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes a topic when its chip is chosen again', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      await fireEvent.click(chip('Snow'));
+      await fireEvent.click(chip('Snow'));
+
+      expect(chip('Snow')).toHaveAttribute('aria-pressed', 'false');
+      expect(savedTopics()).toEqual([]);
+      expect(cookie()).not.toContain('hmpg-topics');
+    });
+
+    it('clears all topics', async () => {
+      render(Page, { props: withTopics() });
+      await openPanel();
+      await fireEvent.click(chip('Snow'));
+      await fireEvent.click(chip('City'));
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Clear topics' }));
+
+      expect(screen.getByText('All topics')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Clear topics' })).not.toBeInTheDocument();
+      expect(savedTopics()).toEqual([]);
+      expect(cookie()).not.toContain('hmpg-topics');
+    });
+
+    it('applies saved topics, and counts only the ones in the pool', async () => {
+      localStorageMock.setItem(
+        'hmpg:user-settings',
+        JSON.stringify({ ...defaultUserSettings, topics: ['snow', 'volcano'] }),
+      );
+      document.cookie = 'hmpg-topics=snow%2Cvolcano; path=/';
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      expect(chip('Snow')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByText('1 chosen')).toBeInTheDocument();
+    });
+
+    it('keeps a saved topic that is not in the pool when another one is chosen', async () => {
+      localStorageMock.setItem(
+        'hmpg:user-settings',
+        JSON.stringify({ ...defaultUserSettings, topics: ['volcano'] }),
+      );
+      document.cookie = 'hmpg-topics=volcano; path=/';
+      render(Page, { props: withTopics() });
+      await openPanel();
+
+      await fireEvent.click(chip('City'));
+
+      expect(savedTopics()).toEqual(['volcano', 'city']);
+    });
+
+    describe('cookie sync when the page opens', () => {
+      it('does nothing when there are no topics and no cookie', async () => {
+        render(Page, { props: withTopics() });
+        await vi.advanceTimersByTimeAsync(50);
+
+        expect(invalidateAll).not.toHaveBeenCalled();
+        expect(cookie()).not.toContain('hmpg-topics');
+      });
+
+      it('does nothing when the cookie already matches', async () => {
+        localStorageMock.setItem(
+          'hmpg:user-settings',
+          JSON.stringify({ ...defaultUserSettings, topics: ['snow', 'city'] }),
+        );
+        document.cookie = 'hmpg-topics=city%2Csnow; path=/';
+        render(Page, { props: withTopics() });
+        await vi.advanceTimersByTimeAsync(50);
+
+        expect(invalidateAll).not.toHaveBeenCalled();
+      });
+
+      it('writes the cookie and loads a photo again when the cookie is missing', async () => {
+        localStorageMock.setItem(
+          'hmpg:user-settings',
+          JSON.stringify({ ...defaultUserSettings, topics: ['snow'] }),
+        );
+        render(Page, { props: withTopics() });
+        await vi.advanceTimersByTimeAsync(50);
+
+        expect(cookie()).toContain('hmpg-topics=snow');
+        expect(invalidateAll).toHaveBeenCalledTimes(1);
+      });
+
+      it('removes a cookie that settings no longer have, and loads a photo again', async () => {
+        document.cookie = 'hmpg-topics=snow; path=/';
+        render(Page, { props: withTopics() });
+        await vi.advanceTimersByTimeAsync(50);
+
+        expect(cookie()).not.toContain('hmpg-topics');
+        expect(invalidateAll).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('with pinned and favorite photos', () => {
+      const picked = (id: number, location: string) => ({ ...photo, id, location });
+
+      it('keeps a pinned photo when topics change', async () => {
+        localStorageMock.setItem(
+          'hmpg:photo-picks',
+          JSON.stringify({ pinned: picked(99, 'Pinned place'), favorites: [] }),
+        );
+        render(Page, { props: withTopics() });
+        await openPanel();
+
+        await fireEvent.click(chip('Snow'));
+        await vi.advanceTimersByTimeAsync(700);
+
+        expect(invalidateAll).toHaveBeenCalled();
+        expect(screen.getByText('Pinned place')).toBeInTheDocument();
+      });
+
+      it('replaces a favorite with a photo from the new topics', async () => {
+        localStorageMock.setItem(
+          'hmpg:photo-picks',
+          JSON.stringify({ pinned: null, favorites: [picked(50, 'Favorite place')] }),
+        );
+        vi.spyOn(Math, 'random').mockReturnValue(0);
+        try {
+          render(Page, { props: withTopics() });
+          expect(screen.getByText('Favorite place')).toBeInTheDocument();
+          await openPanel();
+
+          await fireEvent.click(chip('Snow'));
+          await vi.advanceTimersByTimeAsync(700);
+
+          expect(screen.queryByText('Favorite place')).not.toBeInTheDocument();
+          expect(screen.getByText('Yosemite')).toBeInTheDocument();
+        } finally {
+          vi.restoreAllMocks();
+        }
+      });
     });
   });
 

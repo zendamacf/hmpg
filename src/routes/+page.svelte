@@ -10,6 +10,7 @@ import {
   isPinned,
   loadPicks,
   type PhotoPicks,
+  type PickedPhoto,
   savePicks,
   toggleFavorite,
   togglePin,
@@ -22,6 +23,14 @@ import {
   type UserSettings,
 } from '#lib/settings.js';
 import { dateLabel, isValidTimeZone, supportedTimeZones, timeParts } from '#lib/time.js';
+import {
+  activeTopics,
+  readTopicsCookie,
+  sameTopics,
+  toggleTopic,
+  topicLabel,
+  topicsCookieString,
+} from '#lib/topics.js';
 import { trackEvent } from '#lib/umami.js';
 import {
   type Coordinates,
@@ -42,7 +51,7 @@ import type { PageProps } from './$types';
 const { data }: PageProps = $props();
 
 // A pinned or favorite photo replaces the server photo once, when the page loads.
-let override = $state<NonNullable<typeof data.photo> | null>(null);
+let override = $state<PickedPhoto | null>(null);
 let picks = $state<PhotoPicks>(emptyPicks);
 const photo = $derived(override ?? data.photo);
 const pinned = $derived(photo ? isPinned(picks, photo) : false);
@@ -192,6 +201,30 @@ const updateSettings = (patch: Partial<UserSettings>) => {
   refreshClock();
 };
 
+// Topics: the picker lists the tags that photos in the pool have. The choice is saved
+// in settings, and copied to a cookie so the server can pick a matching photo.
+const availableTopics = $derived(data.topics);
+const chosenTopics = $derived(activeTopics(settings.topics, availableTopics));
+const TOPIC_RELOAD_DELAY_MS = 600;
+let topicReload: ReturnType<typeof setTimeout> | undefined;
+
+const reloadPhoto = async () => {
+  // A pinned photo stays. Any other photo is replaced by one from the new topics.
+  if (!picks.pinned) {
+    override = null;
+  }
+  await invalidateAll();
+};
+
+const applyTopics = (topics: string[]) => {
+  trackEvent('setting-change', { key: 'topics', value: topics.length });
+  updateSettings({ topics });
+  document.cookie = topicsCookieString(topics);
+  // Wait a moment, so several quick choices load one photo.
+  clearTimeout(topicReload);
+  topicReload = setTimeout(reloadPhoto, TOPIC_RELOAD_DELAY_MS);
+};
+
 const updatePicks = (next: PhotoPicks) => {
   picks = next;
   savePicks(next);
@@ -287,6 +320,15 @@ onMount(() => {
   picks = loadPicks();
   const chosen = choosePhoto(data.photo, picks);
   override = chosen === data.photo ? null : chosen;
+  // The server picks the first photo from the cookie. If the cookie is missing or out
+  // of date, fix it and load a photo again.
+  const cookieTopics = readTopicsCookie(document.cookie);
+  if (!sameTopics(cookieTopics, settings.topics)) {
+    document.cookie = topicsCookieString(settings.topics);
+    if (override === null && (settings.topics.length > 0 || cookieTopics.length > 0)) {
+      invalidateAll();
+    }
+  }
   timezoneDraft = settings.timezone ?? '';
   cityDraft = settings.weatherCity?.name ?? '';
   refreshClock();
@@ -298,6 +340,7 @@ onMount(() => {
   return () => {
     clearInterval(intervalId);
     clearInterval(weatherId);
+    clearTimeout(topicReload);
   };
 });
 </script>
@@ -677,6 +720,43 @@ onMount(() => {
                   Leave blank to use your device location.
                 {/if}
               </span>
+            </div>
+            <div class="topics">
+              {#if availableTopics.length === 0}
+                <span class="topics-title">Photo topics</span>
+                <span class="hint">Topics show up as new photos are added.</span>
+              {:else}
+                <details>
+                  <summary>
+                    <span>Photo topics</span>
+                    <span class="topics-value">
+                      {chosenTopics.length === 0 ? 'All topics' : `${chosenTopics.length} chosen`}
+                    </span>
+                  </summary>
+                  <div class="chips" role="group" aria-label="Photo topics">
+                    {#each availableTopics as topic (topic)}
+                      <button
+                        class="chip"
+                        type="button"
+                        aria-pressed={chosenTopics.includes(topic)}
+                        onclick={() => applyTopics(toggleTopic(settings.topics, topic))}
+                      >
+                        {topicLabel(topic)}
+                      </button>
+                    {/each}
+                  </div>
+                  <div class="topics-foot">
+                    <span class="hint">
+                      Photos come from the topics you choose. If none match, any photo can show.
+                    </span>
+                    {#if chosenTopics.length > 0}
+                      <button class="note-action" type="button" onclick={() => applyTopics([])}>
+                        Clear topics
+                      </button>
+                    {/if}
+                  </div>
+                </details>
+              {/if}
             </div>
             <datalist id="timezones">
               {#each timezoneOptions as zone (zone)}
@@ -1273,6 +1353,97 @@ onMount(() => {
       opacity: 0.45;
       cursor: default;
     }
+  }
+
+  .topics {
+    padding-top: 0.9rem;
+
+    summary {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+      list-style: none;
+      border-radius: 0.4rem;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+
+      &::after {
+        content: '';
+        width: 0.45rem;
+        height: 0.45rem;
+        border-right: 2px solid var(--mist);
+        border-bottom: 2px solid var(--mist);
+        transform: translateY(-0.1rem) rotate(45deg);
+        transition: transform 0.2s ease;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--glacier);
+        outline-offset: 2px;
+      }
+    }
+
+    details[open] > summary::after {
+      transform: translateY(0.1rem) rotate(-135deg);
+    }
+
+    .hint {
+      font-size: 0.82rem;
+      color: var(--mist);
+    }
+  }
+
+  .topics-title {
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .topics-value {
+    margin-left: auto;
+    font-size: 0.85rem;
+    color: var(--mist);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-height: 11rem;
+    margin-top: 0.8rem;
+    padding: 0.15rem 0.15rem 1.1rem;
+    overflow-y: auto;
+    /* Fade the last row, so a cut-off row reads as "scroll for more". */
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4rem), transparent);
+  }
+
+  .chip {
+    padding: 0.3em 0.8em;
+    border: 1px solid rgb(247 245 240 / 0.3);
+    border-radius: 999px;
+    font-size: 0.85rem;
+    text-shadow: none;
+
+    &:hover {
+      background: var(--lift);
+    }
+
+    &[aria-pressed='true'] {
+      border-color: var(--glacier);
+      background: var(--glacier);
+      color: var(--night);
+      font-weight: 600;
+    }
+  }
+
+  .topics-foot {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.7rem;
   }
 
   .segmented {
