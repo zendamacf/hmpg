@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onMount } from 'svelte';
+import { onMount, tick, untrack } from 'svelte';
 import { formatCoordinates } from '#lib/coordinates.js';
 import { greetingFor } from '#lib/greeting.js';
 import Icon from '#lib/Icon.svelte';
@@ -12,6 +12,19 @@ import {
 } from '#lib/settings.js';
 import { dateLabel, isValidTimeZone, supportedTimeZones, timeParts } from '#lib/time.js';
 import { trackEvent } from '#lib/umami.js';
+import {
+  type Coordinates,
+  defaultTemperatureUnit,
+  describeWeather,
+  findCity,
+  formatTemperature,
+  getPosition,
+  LocationError,
+  loadPhotoWeather,
+  loadUserWeather,
+  type TemperatureUnit,
+  type WeatherState,
+} from '#lib/weather.js';
 import { invalidateAll } from '$app/navigation';
 import type { PageProps } from './$types';
 
@@ -27,6 +40,7 @@ let loaded = $state(false);
 let timezoneDraft = $state('');
 let timezoneInvalid = $state(false);
 let controlsEl = $state<HTMLElement>();
+let cityInput = $state<HTMLInputElement>();
 let settingsButton = $state<HTMLButtonElement>();
 
 const mapsUrl = (latitude: string | null, longitude: string | null) => {
@@ -47,6 +61,100 @@ const unsplashPhotoUrl = (unsplashId: string | null) =>
   unsplashId
     ? `https://unsplash.com/photos/${unsplashId}?utm_source=hmpg&utm_medium=referral`
     : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
+
+let userWeather = $state<WeatherState>({ status: 'idle' });
+let photoWeather = $state<WeatherState>({ status: 'idle' });
+let cityDraft = $state('');
+let citySearch = $state<'idle' | 'searching' | 'missing' | 'failed'>('idle');
+let userCoordinates: Coordinates | null = null;
+let weatherRun = 0;
+
+const unit = $derived<TemperatureUnit>(
+  settings.temperatureUnit ??
+    defaultTemperatureUnit(typeof navigator === 'undefined' ? undefined : navigator.language),
+);
+
+const WEATHER_REFRESH_MS = 15 * 60 * 1000;
+
+const refreshWeather = async ({ relocate = false } = {}) => {
+  const run = ++weatherRun;
+  if (!settings.showWeather) {
+    userWeather = { status: 'idle' };
+    photoWeather = { status: 'idle' };
+    return;
+  }
+  // Read this before the state changes below.
+  const wasDenied = userWeather.status === 'denied';
+  if (relocate) {
+    userCoordinates = null;
+  }
+  if (relocate || userWeather.status === 'idle') {
+    userWeather = { status: 'loading' };
+  }
+
+  // Ask the browser for the location only when we have to. A refresh reuses the
+  // last position, and a blocked location is not asked again until the user retries.
+  const known = userCoordinates;
+  const locate = async (): Promise<Coordinates> => {
+    if (known) {
+      return known;
+    }
+    if (!relocate && wasDenied) {
+      throw new LocationError('denied');
+    }
+    return getPosition();
+  };
+  const deps = { storage: typeof localStorage === 'undefined' ? undefined : localStorage };
+
+  const [user, photoState] = await Promise.all([
+    loadUserWeather(settings.weatherCity, locate, deps),
+    loadPhotoWeather(photo?.latitude, photo?.longitude, deps),
+  ]);
+  if (run !== weatherRun) {
+    return;
+  }
+  userCoordinates = user.coordinates;
+  userWeather = user.state;
+  photoWeather = photoState;
+};
+
+const chooseCity = async () => {
+  showSettings = true;
+  await tick();
+  cityInput?.focus();
+};
+
+const searchCity = async () => {
+  const query = cityDraft.trim();
+  if (query === '' || citySearch === 'searching') {
+    return;
+  }
+  citySearch = 'searching';
+  try {
+    const city = await findCity(query);
+    if (!city) {
+      citySearch = 'missing';
+      return;
+    }
+    citySearch = 'idle';
+    cityDraft = city.name;
+    trackEvent('setting-change', { key: 'weatherCity', value: 'set' });
+    updateSettings({ weatherCity: city });
+    await refreshWeather({ relocate: true });
+  } catch {
+    citySearch = 'failed';
+  }
+};
+
+const onCityInput = (value: string) => {
+  cityDraft = value;
+  citySearch = 'idle';
+  if (value.trim() === '' && settings.weatherCity) {
+    trackEvent('setting-change', { key: 'weatherCity', value: 'cleared' });
+    updateSettings({ weatherCity: null });
+    refreshWeather({ relocate: true });
+  }
+};
 
 let time = $state(timeParts(new Date()));
 let date = $state(dateLabel(new Date()));
@@ -107,6 +215,17 @@ const onPointerDown = (event: PointerEvent) => {
 const timezoneOptions = supportedTimeZones();
 
 // Fade the photo in once it has actually arrived, instead of letting it pop in.
+// Load weather once settings are read, and again when the photo changes.
+$effect(() => {
+  void photo?.latitude;
+  void photo?.longitude;
+  if (mounted) {
+    untrack(() => {
+      refreshWeather();
+    });
+  }
+});
+
 $effect(() => {
   const url = photo?.url;
   loaded = false;
@@ -129,10 +248,17 @@ $effect(() => {
 onMount(() => {
   settings = loadUserSettings();
   timezoneDraft = settings.timezone ?? '';
+  cityDraft = settings.weatherCity?.name ?? '';
   refreshClock();
   mounted = true;
   const intervalId = setInterval(refreshClock, 1000);
-  return () => clearInterval(intervalId);
+  const weatherId = setInterval(() => {
+    refreshWeather();
+  }, WEATHER_REFRESH_MS);
+  return () => {
+    clearInterval(intervalId);
+    clearInterval(weatherId);
+  };
 });
 </script>
 
@@ -160,6 +286,50 @@ onMount(() => {
         {/if}
       </span>
     </div>
+    {#if settings.showWeather}
+      <div class="weather-slot">
+        {#if userWeather.status === 'ready'}
+          {@const condition = describeWeather(userWeather.weather.code, userWeather.weather.isDay)}
+          <p class="here">
+            <span class="here-temp">{formatTemperature(userWeather.weather.temperatureC, unit)}</span>
+            <span class="here-text">
+              <span class="here-condition"><Icon name={condition.icon} /> {condition.label}</span>
+              <span class="here-place">
+                {settings.weatherCity ? settings.weatherCity.name : 'Where you are'}
+              </span>
+            </span>
+          </p>
+        {:else if userWeather.status === 'denied'}
+          <p class="weather-note" role="status">
+            Location is blocked, so weather for your area is off.
+            <button
+              class="note-action"
+              type="button"
+              onclick={() => {
+                trackEvent('weather-choose-city');
+                chooseCity();
+              }}
+            >
+              Choose a city
+            </button>
+          </p>
+        {:else if userWeather.status === 'error'}
+          <p class="weather-note" role="status">
+            Weather is unavailable right now.
+            <button
+              class="note-action"
+              type="button"
+              onclick={() => {
+                trackEvent('weather-retry');
+                refreshWeather({ relocate: !settings.weatherCity });
+              }}
+            >
+              Try again
+            </button>
+          </p>
+        {/if}
+      </div>
+    {/if}
     {#if settings.showQuote}
       <figure class="quote">
         <blockquote>{quote.text}</blockquote>
@@ -197,6 +367,14 @@ onMount(() => {
           {/if}
           {#if coordinates}
             <span class="coords">{coordinates}</span>
+          {/if}
+          {#if settings.showWeather && photoWeather.status === 'ready'}
+            {@const condition = describeWeather(photoWeather.weather.code, photoWeather.weather.isDay)}
+            <span class="there">
+              <Icon name={condition.icon} />
+              {formatTemperature(photoWeather.weather.temperatureC, unit)}
+              {condition.label}
+            </span>
           {/if}
         </span>
       </button>
@@ -304,6 +482,41 @@ onMount(() => {
               />
             </label>
             <label class="row">
+              <span>Show weather</span>
+              <input
+                class="switch"
+                type="checkbox"
+                role="switch"
+                checked={settings.showWeather}
+                onchange={(event) => {
+                  const showWeather = (event.currentTarget as HTMLInputElement).checked;
+                  trackEvent('setting-change', { key: 'showWeather', value: showWeather });
+                  updateSettings({ showWeather });
+                  refreshWeather();
+                }}
+              />
+            </label>
+            <div class="row" role="radiogroup" aria-label="Temperature unit">
+              <span>Temperature unit</span>
+              <span class="segmented">
+                {#each [['celsius', '°C'], ['fahrenheit', '°F']] as const as [value, label] (value)}
+                  <label>
+                    <input
+                      type="radio"
+                      name="temperature-unit"
+                      {value}
+                      checked={unit === value}
+                      onchange={() => {
+                        trackEvent('setting-change', { key: 'temperatureUnit', value });
+                        updateSettings({ temperatureUnit: value });
+                      }}
+                    />
+                    <span>{label}</span>
+                  </label>
+                {/each}
+              </span>
+            </div>
+            <label class="row">
               <span>Show location</span>
               <input
                 class="switch"
@@ -350,6 +563,55 @@ onMount(() => {
                   : 'Leave blank to use your browser’s time zone.'}
               </span>
             </label>
+            <div class="field">
+              <label for="weather-city">Weather city</label>
+              <span class="field-line">
+                <input
+                  id="weather-city"
+                  type="text"
+                  placeholder="Device location"
+                  autocomplete="off"
+                  spellcheck="false"
+                  bind:this={cityInput}
+                  value={cityDraft}
+                  aria-invalid={citySearch === 'missing' || citySearch === 'failed'}
+                  aria-describedby="city-hint"
+                  oninput={(event) => onCityInput((event.currentTarget as HTMLInputElement).value)}
+                  onkeydown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      searchCity();
+                    }
+                  }}
+                />
+                <button
+                  class="find"
+                  type="button"
+                  disabled={citySearch === 'searching' || cityDraft.trim() === ''}
+                  onclick={searchCity}
+                >
+                  Find
+                </button>
+              </span>
+              <span
+                class="hint"
+                class:invalid={citySearch === 'missing' || citySearch === 'failed'}
+                id="city-hint"
+              >
+                {#if citySearch === 'searching'}
+                  Searching…
+                {:else if citySearch === 'missing'}
+                  No city found. Check the spelling.
+                {:else if citySearch === 'failed'}
+                  City search is unavailable. Try again later.
+                {:else if settings.weatherCity}
+                  Showing weather for {settings.weatherCity.name}. Clear the field to use your
+                  device location.
+                {:else}
+                  Leave blank to use your device location.
+                {/if}
+              </span>
+            </div>
             <datalist id="timezones">
               {#each timezoneOptions as zone (zone)}
                 <option value={zone}></option>
@@ -596,6 +858,74 @@ onMount(() => {
     letter-spacing: 0.02em;
   }
 
+  /* Weather: "here" is the large numeral under the clock, "there" is a small
+     line inside the photo's location button. The slot keeps its height while
+     loading so the clock does not jump when the weather arrives. */
+  .weather-slot {
+    display: flex;
+    align-items: center;
+    min-height: clamp(2.6rem, 5vw, 4rem);
+    margin: clamp(0.35rem, 1.4vh, 0.9rem) 0 0 0.2em;
+  }
+
+  .here {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin: 0;
+    text-shadow: 0 2px 24px rgb(0 0 0 / 0.35);
+
+    @media (prefers-reduced-motion: no-preference) {
+      animation: fade 0.6s ease both;
+    }
+  }
+
+  .here-temp {
+    font-size: clamp(2.4rem, 5vw, 3.8rem);
+    font-weight: 250;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .here-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+    font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+    line-height: 1.25;
+  }
+
+  .here-condition {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    font-weight: 500;
+  }
+
+  .here-place {
+    color: var(--mist);
+    font-size: 0.9em;
+  }
+
+  .weather-note {
+    margin: 0;
+    max-width: 36ch;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: var(--mist);
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
+  }
+
+  .note-action {
+    padding: 0;
+    color: var(--glacier);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    text-shadow: none;
+  }
+
   .quote {
     margin: clamp(0.9rem, 2.6vh, 1.6rem) 0 0 0.2em;
     max-width: min(36ch, 100%);
@@ -690,6 +1020,15 @@ onMount(() => {
       font-size: 0.85em;
       font-variant-numeric: tabular-nums;
       color: var(--mist);
+    }
+
+    .there {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45em;
+      margin-top: 0.15em;
+      font-size: 0.9em;
+      font-variant-numeric: tabular-nums;
     }
   }
 
@@ -819,6 +1158,77 @@ onMount(() => {
     }
   }
 
+  .field-line {
+    display: flex;
+    gap: 0.5rem;
+
+    input {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .find {
+    padding: 0.5em 1em;
+    border: 1px solid var(--glacier);
+    border-radius: 0.6rem;
+    color: var(--glacier);
+    font-weight: 600;
+    text-shadow: none;
+
+    &:hover:not(:disabled) {
+      background: var(--glacier);
+      color: var(--night);
+    }
+
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  .segmented {
+    display: inline-flex;
+    padding: 0.2rem;
+    gap: 0.2rem;
+    border-radius: 999px;
+    background: rgb(247 245 240 / 0.12);
+
+    label {
+      position: relative;
+      cursor: pointer;
+    }
+
+    input {
+      appearance: none;
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      border-radius: 999px;
+      cursor: pointer;
+
+      &:focus-visible {
+        outline: 2px solid var(--glacier);
+        outline-offset: 2px;
+      }
+    }
+
+    span {
+      display: block;
+      padding: 0.25em 0.8em;
+      border-radius: 999px;
+      font-weight: 600;
+      transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+    }
+
+    input:checked + span {
+      background: var(--glacier);
+      color: var(--night);
+    }
+  }
+
   .switch {
     appearance: none;
     position: relative;
@@ -880,14 +1290,37 @@ onMount(() => {
     }
   }
 
-  /* Short viewports (phones in landscape, small windows): the clock keeps
-     its space, so drop the quote and tighten the greeting. */
+  /* Short viewports (phones in landscape, small windows): size the clock to the
+     height and drop the quote and the photo's weather, so the rest still fits. */
   @media (max-height: 32rem) {
     .quote {
       display: none;
     }
     .greeting {
       font-size: 1.15rem;
+    }
+    .weather-slot {
+      min-height: 2.2rem;
+    }
+    .here-temp {
+      font-size: 1.9rem;
+    }
+    .here-place,
+    .place .there {
+      display: none;
+    }
+    .time {
+      font-size: min(21vw, 36vh);
+    }
+  }
+
+  /* Very short viewports (small phones in landscape): tighten a little more. */
+  @media (max-height: 24rem) {
+    .stage {
+      padding-block: 0.9rem;
+    }
+    .time {
+      font-size: min(21vw, 30vh);
     }
   }
 </style>
