@@ -3,6 +3,17 @@ import { onMount } from 'svelte';
 import { formatCoordinates } from '#lib/coordinates.js';
 import { greetingFor } from '#lib/greeting.js';
 import Icon from '#lib/Icon.svelte';
+import {
+  choosePhoto,
+  emptyPicks,
+  isFavorite,
+  isPinned,
+  loadPicks,
+  type PhotoPicks,
+  savePicks,
+  toggleFavorite,
+  togglePin,
+} from '#lib/photo-picks.js';
 import { quoteForDay } from '#lib/quotes.js';
 import {
   defaultUserSettings,
@@ -17,7 +28,12 @@ import type { PageProps } from './$types';
 
 const { data }: PageProps = $props();
 
-const photo = $derived(data.photo);
+// A pinned or favorite photo replaces the server photo once, when the page loads.
+let override = $state<NonNullable<typeof data.photo> | null>(null);
+let picks = $state<PhotoPicks>(emptyPicks);
+const photo = $derived(override ?? data.photo);
+const pinned = $derived(photo ? isPinned(picks, photo) : false);
+const favorite = $derived(photo ? isFavorite(picks, photo) : false);
 const coordinates = $derived(photo ? formatCoordinates(photo.latitude, photo.longitude) : '');
 
 let settings = $state<UserSettings>(defaultUserSettings);
@@ -66,6 +82,27 @@ const updateSettings = (patch: Partial<UserSettings>) => {
   settings = { ...settings, ...patch };
   saveUserSettings(settings);
   refreshClock();
+};
+
+const updatePicks = (next: PhotoPicks) => {
+  picks = next;
+  savePicks(next);
+};
+
+const onPin = () => {
+  if (!photo) {
+    return;
+  }
+  trackEvent('photo-pin', { on: !pinned });
+  updatePicks(togglePin(picks, photo));
+};
+
+const onFavorite = () => {
+  if (!photo) {
+    return;
+  }
+  trackEvent('photo-favorite', { on: !favorite });
+  updatePicks(toggleFavorite(picks, photo));
 };
 
 const onTimezoneInput = (value: string) => {
@@ -128,6 +165,9 @@ $effect(() => {
 
 onMount(() => {
   settings = loadUserSettings();
+  picks = loadPicks();
+  const chosen = choosePhoto(data.photo, picks);
+  override = chosen === data.photo ? null : chosen;
   timezoneDraft = settings.timezone ?? '';
   refreshClock();
   mounted = true;
@@ -203,6 +243,32 @@ onMount(() => {
     {/if}
 
     <div class="trailing">
+      {#if photo}
+        <div class="picks">
+          <button
+            class="icon-btn pick pin"
+            class:on={pinned}
+            type="button"
+            aria-pressed={pinned}
+            aria-label={pinned ? 'Unpin photo' : 'Pin photo'}
+            title={pinned ? 'Unpin photo' : 'Pin photo'}
+            onclick={onPin}
+          >
+            <Icon name="pin" />
+          </button>
+          <button
+            class="icon-btn pick"
+            class:on={favorite}
+            type="button"
+            aria-pressed={favorite}
+            aria-label={favorite ? 'Remove photo from favorites' : 'Add photo to favorites'}
+            title={favorite ? 'Remove from favorites' : 'Add to favorites'}
+            onclick={onFavorite}
+          >
+            <Icon name={favorite ? 'heart' : 'heart-outline'} />
+          </button>
+        </div>
+      {/if}
       {#if photo && settings.showAttribution}
         <span class="link credit">
           <Icon name="camera" />
@@ -700,6 +766,28 @@ onMount(() => {
     &:hover {
       color: var(--snow);
     }
+  }
+
+  .picks {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  /* Off: pin lies tilted. On: it stands upright and lights up. */
+  .pick.on {
+    color: var(--glacier);
+  }
+
+  .pin :global(.icon) {
+    transform: rotate(45deg);
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+  }
+
+  .pin.on :global(.icon) {
+    transform: rotate(0deg);
   }
 
   .credit:hover {

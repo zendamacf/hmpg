@@ -1,7 +1,18 @@
 <script lang="ts">
-export type IconName = 'map-marker' | 'camera' | 'instagram' | 'cog' | 'github';
+export type IconName =
+  | 'map-marker'
+  | 'camera'
+  | 'instagram'
+  | 'cog'
+  | 'github'
+  | 'pin'
+  | 'heart'
+  | 'heart-outline';
 
 const iconClass: Record<IconName, string> = {
+  pin: 'fa-solid fa-thumbtack',
+  heart: 'fa-solid fa-heart',
+  'heart-outline': 'fa-regular fa-heart',
   'map-marker': 'fa-solid fa-location-dot',
   camera: 'fa-solid fa-camera',
   instagram: 'fa-brands fa-instagram',
