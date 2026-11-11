@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:26-bookworm-slim AS deps
+FROM node:26-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --engine-strict=false
@@ -16,9 +16,17 @@ ENV HUSKY=0 \
   DATABASE_URL=$DATABASE_URL \
   UNSPLASH_ACCESS_KEY=$UNSPLASH_ACCESS_KEY \
   CRON_SECRET=$CRON_SECRET
-RUN npm run build
+RUN npm run build \
+  && node_modules/.bin/esbuild docker/migrate.ts \
+    --bundle --platform=node --format=esm --minify \
+    --outfile=/app/migrate.mjs
 
-FROM node:26-bookworm-slim AS runtime
+FROM node:26-alpine AS prod-deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev --ignore-scripts --engine-strict=false
+
+FROM node:26-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
   HOST=0.0.0.0 \
@@ -26,31 +34,17 @@ ENV NODE_ENV=production \
   HUSKY=0 \
   HOME=/home/sveltekit
 
-RUN apt-get update \
-  && apt-get install -y --no-install-recommends dumb-init \
-  && rm -rf /var/lib/apt/lists/* \
-  && groupadd --system --gid 1001 nodejs \
-  && useradd --system --uid 1001 --gid nodejs --create-home --home-dir /home/sveltekit sveltekit
+RUN apk add --no-cache dumb-init \
+  && addgroup -S -g 1001 nodejs \
+  && adduser -S -u 1001 -G nodejs -h /home/sveltekit sveltekit \
+  && chown sveltekit:nodejs /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts --engine-strict=false \
-  && chown -R sveltekit:nodejs /app
-
-# drizzle-kit is a devDependency; copy migration CLI and its runtime deps from the full install.
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/drizzle-kit ./node_modules/drizzle-kit
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/@drizzle-team ./node_modules/@drizzle-team
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/@esbuild-kit ./node_modules/@esbuild-kit
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/esbuild ./node_modules/esbuild
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/tsx ./node_modules/tsx
-COPY --from=deps --chown=sveltekit:nodejs /app/node_modules/.bin/drizzle-kit ./node_modules/.bin/drizzle-kit
-
+COPY --chown=sveltekit:nodejs package.json ./
+COPY --from=prod-deps --chown=sveltekit:nodejs /app/node_modules ./node_modules
 COPY --from=build --chown=sveltekit:nodejs /app/build ./build
 COPY --from=build --chown=sveltekit:nodejs /app/drizzle ./drizzle
-COPY --from=build --chown=sveltekit:nodejs /app/drizzle.config.ts ./
-COPY --from=build --chown=sveltekit:nodejs /app/src/lib/server/db ./src/lib/server/db
-COPY --chown=sveltekit:nodejs docker/entrypoint.sh ./docker/entrypoint.sh
-
-RUN chmod +x ./docker/entrypoint.sh
+COPY --from=build --chown=sveltekit:nodejs /app/migrate.mjs ./migrate.mjs
+COPY --chown=sveltekit:nodejs --chmod=755 docker/entrypoint.sh ./docker/entrypoint.sh
 
 USER sveltekit
 EXPOSE 3000
