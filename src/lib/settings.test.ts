@@ -18,12 +18,16 @@ describe('parseUserSettings', () => {
         JSON.stringify({
           hour12: false,
           showLocation: false,
+          showGreeting: false,
+          showQuote: false,
         }),
       ),
     ).toEqual({
       ...defaultUserSettings,
       hour12: false,
       showLocation: false,
+      showGreeting: false,
+      showQuote: false,
     });
   });
 
@@ -34,9 +38,18 @@ describe('parseUserSettings', () => {
           hour12: 'yes',
           timezone: 42,
           showAttribution: 'on',
+          showGreeting: 'yes',
+          showQuote: 1,
         }),
       ),
     ).toEqual(defaultUserSettings);
+  });
+});
+
+describe('defaults', () => {
+  it('shows the greeting and quote by default', () => {
+    expect(defaultUserSettings.showGreeting).toBe(true);
+    expect(defaultUserSettings.showQuote).toBe(true);
   });
 });
 

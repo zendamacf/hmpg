@@ -1,7 +1,9 @@
 <script lang="ts">
 import { onMount } from 'svelte';
 import { formatCoordinates } from '#lib/coordinates.js';
+import { greetingFor } from '#lib/greeting.js';
 import Icon from '#lib/Icon.svelte';
+import { quoteForDay } from '#lib/quotes.js';
 import {
   defaultUserSettings,
   loadUserSettings,
@@ -48,12 +50,16 @@ const unsplashPhotoUrl = (unsplashId: string | null) =>
 
 let time = $state(timeParts(new Date()));
 let date = $state(dateLabel(new Date()));
+let greeting = $state(greetingFor(new Date()));
+let quote = $state(quoteForDay(new Date()));
 
 const refreshClock = () => {
   const now = new Date();
   const options = { hour12: settings.hour12, timeZone: settings.timezone };
   time = timeParts(now, options);
   date = dateLabel(now, options);
+  greeting = greetingFor(now, options);
+  quote = quoteForDay(now, options);
 };
 
 const updateSettings = (patch: Partial<UserSettings>) => {
@@ -141,6 +147,9 @@ onMount(() => {
 
 <main class="stage" class:ready={mounted}>
   <section class="clock-block">
+    {#if settings.showGreeting}
+      <p class="greeting">{greeting}</p>
+    {/if}
     <p class="date">{date}</p>
     <div class="time" role="timer" aria-label="Current time">
       <span class="digits">{time.hours}:{time.minutes}</span>
@@ -151,6 +160,12 @@ onMount(() => {
         {/if}
       </span>
     </div>
+    {#if settings.showQuote}
+      <figure class="quote">
+        <blockquote>{quote.text}</blockquote>
+        <figcaption>{quote.author}</figcaption>
+      </figure>
+    {/if}
     {#if !photo}
       <p class="empty-message">No background photo is available right now.</p>
       <button
@@ -257,6 +272,34 @@ onMount(() => {
                   const hour12 = (event.currentTarget as HTMLInputElement).checked;
                   trackEvent('setting-change', { key: 'hour12', value: hour12 });
                   updateSettings({ hour12 });
+                }}
+              />
+            </label>
+            <label class="row">
+              <span>Show greeting</span>
+              <input
+                class="switch"
+                type="checkbox"
+                role="switch"
+                checked={settings.showGreeting}
+                onchange={(event) => {
+                  const showGreeting = (event.currentTarget as HTMLInputElement).checked;
+                  trackEvent('setting-change', { key: 'showGreeting', value: showGreeting });
+                  updateSettings({ showGreeting });
+                }}
+              />
+            </label>
+            <label class="row">
+              <span>Show daily quote</span>
+              <input
+                class="switch"
+                type="checkbox"
+                role="switch"
+                checked={settings.showQuote}
+                onchange={(event) => {
+                  const showQuote = (event.currentTarget as HTMLInputElement).checked;
+                  trackEvent('setting-change', { key: 'showQuote', value: showQuote });
+                  updateSettings({ showQuote });
                 }}
               />
             </label>
@@ -503,6 +546,14 @@ onMount(() => {
     margin-bottom: clamp(1rem, 4vh, 2.25rem);
   }
 
+  .greeting {
+    margin: 0 0 0.05em 0.14em;
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
+  }
+
   .date {
     margin: 0 0 0.1em 0.2em;
     font-size: clamp(1.05rem, 2.2vw, 1.6rem);
@@ -543,6 +594,26 @@ onMount(() => {
   .ampm {
     font-weight: 600;
     letter-spacing: 0.02em;
+  }
+
+  .quote {
+    margin: clamp(0.9rem, 2.6vh, 1.6rem) 0 0 0.2em;
+    max-width: min(36ch, 100%);
+    font-size: clamp(1.05rem, 1.9vw, 1.45rem);
+    line-height: 1.4;
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
+
+    blockquote {
+      margin: 0;
+      font-weight: 400;
+      text-wrap: pretty;
+    }
+
+    figcaption {
+      margin-top: 0.4em;
+      font-size: 0.82em;
+      color: var(--mist);
+    }
   }
 
   .empty-message {
@@ -677,6 +748,10 @@ onMount(() => {
     bottom: calc(100% + 0.75rem);
     box-sizing: border-box;
     width: min(20rem, calc(100vw - 2.5rem));
+    /* Seven rows now; keep the panel inside short viewports. */
+    max-height: calc(100vh - 7rem);
+    max-height: calc(100dvh - 7rem);
+    overflow-y: auto;
     padding: 0.5rem 1.1rem 1.1rem;
     display: flex;
     flex-direction: column;
@@ -786,6 +861,9 @@ onMount(() => {
     .time {
       font-size: 36vw;
     }
+    .quote {
+      max-width: 100%;
+    }
     .caption {
       flex-direction: column;
       align-items: flex-start;
@@ -799,6 +877,17 @@ onMount(() => {
     }
     .panel {
       right: 0;
+    }
+  }
+
+  /* Short viewports (phones in landscape, small windows): the clock keeps
+     its space, so drop the quote and tighten the greeting. */
+  @media (max-height: 32rem) {
+    .quote {
+      display: none;
+    }
+    .greeting {
+      font-size: 1.15rem;
     }
   }
 </style>
