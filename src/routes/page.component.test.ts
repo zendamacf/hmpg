@@ -309,8 +309,10 @@ describe('+page.svelte', () => {
       });
     };
 
+    const requestUrl = (input: unknown) => new URL(String(input), 'http://localhost');
+
     const weatherRequests = () =>
-      fetchMock.mock.calls.filter(([input]) => String(input).includes('api.open-meteo.com'));
+      fetchMock.mock.calls.filter(([input]) => requestUrl(input).hostname === 'api.open-meteo.com');
 
     const withSettings = (patch: Record<string, unknown>) =>
       localStorageMock.setItem(
@@ -347,17 +349,17 @@ describe('+page.svelte', () => {
       await screen.findByText('21°');
 
       expect(getCurrentPosition).toHaveBeenCalledTimes(1);
-      const hosts = fetchMock.mock.calls.map(
-        ([input]) => new URL(String(input), 'http://localhost').hostname,
-      );
-      expect(hosts.every((host) => host.endsWith('open-meteo.com') || host === 'localhost')).toBe(
-        true,
-      );
-      expect(
-        fetchMock.mock.calls.some(
-          ([input]) => String(input).includes('-27.47') && !String(input).includes('open-meteo'),
-        ),
-      ).toBe(false);
+      const urls = fetchMock.mock.calls.map(([input]) => requestUrl(input));
+      const allowedHosts = new Set(['api.open-meteo.com', 'geocoding-api.open-meteo.com']);
+      for (const url of urls) {
+        if (!allowedHosts.has(url.hostname)) {
+          // Any other request is to our own server. It must not carry a location.
+          expect(url.hostname).toBe('localhost');
+          expect(url.searchParams.has('latitude')).toBe(false);
+          expect(url.searchParams.has('longitude')).toBe(false);
+        }
+      }
+      expect(urls.some((url) => url.hostname === 'api.open-meteo.com')).toBe(true);
     });
 
     it('uses Fahrenheit by default for en-US browsers, and follows the unit setting', async () => {
