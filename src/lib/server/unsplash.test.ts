@@ -51,6 +51,7 @@ describe('UnsplashAPI.getRandom', () => {
     });
     expect(result).toEqual({
       id: 'photo-1',
+      tag: expect.stringMatching(/^(landscape|mountain)$/),
       urls: {
         full: 'https://example.com/full.jpg',
         regular: 'https://example.com/regular.jpg',
@@ -62,6 +63,15 @@ describe('UnsplashAPI.getRandom', () => {
         longitude: -119.5383,
       },
     });
+  });
+
+  it('returns the keyword it searched for as the tag', async () => {
+    unsplashGet.mockResolvedValue({ data: [photoWithCoords] });
+
+    const result = await UnsplashAPI.getRandom(['aurora']);
+
+    expect(result.tag).toBe('aurora');
+    expect(unsplashGet.mock.calls[0][1].params.query.query).toBe('aurora');
   });
 
   it('throws when no photos have coordinates', async () => {

@@ -7,6 +7,8 @@ const unsplash = createApi({ accessKey: UNSPLASH_ACCESS_KEY });
 
 interface UnsplashImage {
   id: string;
+  /** The search keyword that found the photo. */
+  tag: string;
   urls: {
     full: string;
     regular: string;
@@ -23,11 +25,12 @@ interface UnsplashImage {
   };
 }
 
-const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
+const getRandom = async (tags: readonly string[]): Promise<UnsplashImage> => {
+  const tag = tags[Math.floor(Math.random() * tags.length)];
   const { data, error } = await unsplash.GET('/photos/random', {
     params: {
       query: {
-        query: tags[Math.floor(Math.random() * tags.length)],
+        query: tag,
         orientation: 'landscape',
         count: 30,
       },
@@ -46,6 +49,7 @@ const getRandom = async (tags: string[]): Promise<UnsplashImage> => {
 
   return {
     id: raw.id,
+    tag,
     urls: {
       full: raw.urls.full,
       regular: raw.urls.regular,

@@ -10,4 +10,6 @@ export const image = pgTable('image', {
   author_username: text('author_username'),
   author_instagram: text('author_instagram'),
   url: text('url'),
+  /** The search keyword that found this photo. Null for photos stored before tags existed. */
+  tag: text('tag'),
 });

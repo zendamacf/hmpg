@@ -1,3 +1,4 @@
+import { normalizeTopics } from './topics';
 import type { City, TemperatureUnit } from './weather';
 
 export type UserSettings = {
@@ -12,6 +13,8 @@ export type UserSettings = {
   temperatureUnit: TemperatureUnit | null;
   /** City chosen by the user. null means: use the device location. */
   weatherCity: City | null;
+  /** Chosen photo topics. Empty means: any topic. */
+  topics: string[];
 };
 
 export const defaultUserSettings: UserSettings = {
@@ -24,6 +27,7 @@ export const defaultUserSettings: UserSettings = {
   showWeather: true,
   temperatureUnit: null,
   weatherCity: null,
+  topics: [],
 };
 
 const parseCity = (value: unknown): City | null => {
@@ -82,6 +86,7 @@ export const parseUserSettings = (raw: string | null): UserSettings => {
           ? parsed.temperatureUnit
           : defaultUserSettings.temperatureUnit,
       weatherCity: parseCity(parsed.weatherCity),
+      topics: normalizeTopics(parsed.topics),
     };
   } catch {
     return defaultUserSettings;

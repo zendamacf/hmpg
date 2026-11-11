@@ -43,6 +43,7 @@ describe('parseUserSettings', () => {
           showWeather: 'yes',
           temperatureUnit: 'kelvin',
           weatherCity: { name: '', latitude: 1, longitude: 2 },
+          topics: 'snow',
         }),
       ),
     ).toEqual(defaultUserSettings);
@@ -59,6 +60,32 @@ describe('defaults', () => {
     expect(defaultUserSettings.showWeather).toBe(true);
     expect(defaultUserSettings.temperatureUnit).toBeNull();
     expect(defaultUserSettings.weatherCity).toBeNull();
+  });
+});
+
+describe('topics setting', () => {
+  it('has no topics by default', () => {
+    expect(defaultUserSettings.topics).toEqual([]);
+  });
+
+  it('keeps valid topics', () => {
+    expect(parseUserSettings(JSON.stringify({ topics: ['snow', 'night sky'] })).topics).toEqual([
+      'snow',
+      'night sky',
+    ]);
+  });
+
+  it('drops topics that are not plain words, and duplicates', () => {
+    expect(
+      parseUserSettings(
+        JSON.stringify({ topics: ['snow', 'snow', 42, null, "x'; --", 'Snow', '<b>', 'city'] }),
+      ).topics,
+    ).toEqual(['snow', 'city']);
+  });
+
+  it('ignores a value that is not a list', () => {
+    expect(parseUserSettings(JSON.stringify({ topics: 'snow' })).topics).toEqual([]);
+    expect(parseUserSettings(JSON.stringify({ topics: { snow: true } })).topics).toEqual([]);
   });
 });
 
