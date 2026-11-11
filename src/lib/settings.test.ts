@@ -40,6 +40,9 @@ describe('parseUserSettings', () => {
           showAttribution: 'on',
           showGreeting: 'yes',
           showQuote: 1,
+          showWeather: 'yes',
+          temperatureUnit: 'kelvin',
+          weatherCity: { name: '', latitude: 1, longitude: 2 },
         }),
       ),
     ).toEqual(defaultUserSettings);
@@ -50,6 +53,46 @@ describe('defaults', () => {
   it('shows the greeting and quote by default', () => {
     expect(defaultUserSettings.showGreeting).toBe(true);
     expect(defaultUserSettings.showQuote).toBe(true);
+  });
+
+  it('shows weather by default, with the unit and city unset', () => {
+    expect(defaultUserSettings.showWeather).toBe(true);
+    expect(defaultUserSettings.temperatureUnit).toBeNull();
+    expect(defaultUserSettings.weatherCity).toBeNull();
+  });
+});
+
+describe('weather settings', () => {
+  const city = { name: 'Oslo, Norway', latitude: 59.91, longitude: 10.75 };
+
+  it('keeps valid weather settings', () => {
+    expect(
+      parseUserSettings(
+        JSON.stringify({ showWeather: false, temperatureUnit: 'fahrenheit', weatherCity: city }),
+      ),
+    ).toEqual({
+      ...defaultUserSettings,
+      showWeather: false,
+      temperatureUnit: 'fahrenheit',
+      weatherCity: city,
+    });
+  });
+
+  it.each([
+    ['null', null],
+    ['text', 'Oslo'],
+    ['missing name', { latitude: 1, longitude: 2 }],
+    ['text latitude', { name: 'X', latitude: '1', longitude: 2 }],
+    ['latitude out of range', { name: 'X', latitude: 91, longitude: 2 }],
+    ['longitude out of range', { name: 'X', latitude: 1, longitude: 181 }],
+    ['infinite longitude', { name: 'X', latitude: 1, longitude: null }],
+  ])('drops a bad city: %s', (_name, weatherCity) => {
+    expect(parseUserSettings(JSON.stringify({ weatherCity })).weatherCity).toBeNull();
+  });
+
+  it('removes extra fields from a saved city', () => {
+    const parsed = parseUserSettings(JSON.stringify({ weatherCity: { ...city, extra: 'x' } }));
+    expect(parsed.weatherCity).toEqual(city);
   });
 });
 
