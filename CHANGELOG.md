@@ -1,5 +1,20 @@
 # hmpg
 
+## 1.1.0
+
+### Minor Changes
+
+- 53c5d72: Add a time-of-day greeting and a daily mindfulness quote. Add settings to turn each one off.
+- 7a38817: Add a photo topic picker. Users can choose topics in settings, and the page shows photos from those topics when it has them. Store the search keyword for each photo in a new `tag` column. Add more search keywords.
+- 9c1e986: Add pin and favorite buttons for photos. A pinned photo shows on every load until unpinned. Favorite photos show more often. Both are saved in the browser, so they stay after old photos are pruned.
+- a286f43: Add weather. Show the temperature and conditions where the user is, and at the photo's location. Use Open-Meteo from the browser. Add settings to turn weather off, to choose °C or °F, and to choose a city.
+
+### Patch Changes
+
+- 35ed297: Make the Docker image smaller. Install the font packages as dev dependencies, because Vite bundles them at build time.
+- ab29545: Make the Docker image smaller. Use the Alpine base image. Run migrations with a bundled script instead of drizzle-kit.
+- a6c0008: Link photo credit to the Unsplash photo page and the author name to the Unsplash profile. Add `author_username` column.
+
 ## 1.0.1
 
 ### Patch Changes
