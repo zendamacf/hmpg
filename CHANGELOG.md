@@ -1,5 +1,15 @@
 # hmpg
 
+## 1.2.0
+
+### Minor Changes
+
+- cd83fcc: Put the photo location, Instagram link and pin and favorite buttons in a details card that opens from a button at the bottom of the page. The quote now sits apart from the clock, so the page has clear top, middle and bottom areas.
+
+### Patch Changes
+
+- ff88b22: Updated @sveltejs/kit from 3.1.0 to 3.2.0 (version-update:semver-minor).
+
 ## 1.1.0
 
 ### Minor Changes
