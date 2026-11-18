@@ -34,6 +34,10 @@ const pageProps: PageProps = {
   form: undefined,
 };
 
+// The location, Instagram and pin/favorite buttons sit in a details card that starts closed.
+const openDetails = (name: string | RegExp = 'Yosemite') =>
+  fireEvent.click(screen.getByRole('button', { name, expanded: false }));
+
 describe('+page.svelte', () => {
   const open = vi.fn();
   const reload = vi.fn();
@@ -76,7 +80,7 @@ describe('+page.svelte', () => {
     vi.unstubAllGlobals();
   });
 
-  it('renders the background image and photo metadata', () => {
+  it('renders the background image and photo metadata', async () => {
     const { container } = render(Page, { props: pageProps });
 
     const background = container.querySelector('.background');
@@ -84,7 +88,58 @@ describe('+page.svelte', () => {
     expect(screen.getByText('Yosemite')).toBeInTheDocument();
     expect(screen.getByText(/Taken by/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Jane Doe' })).toBeInTheDocument();
+
+    await openDetails();
     expect(screen.getByRole('button', { name: 'Instagram @janedoe' })).toBeInTheDocument();
+  });
+
+  describe('photo details', () => {
+    it('starts closed and shows the credit without opening', () => {
+      render(Page, { props: pageProps });
+
+      expect(screen.getByRole('button', { name: 'Yosemite' })).toHaveAttribute(
+        'aria-expanded',
+        'false',
+      );
+      expect(screen.getByText(/Taken by/)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Pin photo' })).not.toBeInTheDocument();
+      expect(screen.queryByText('37.865° N, 119.538° W')).not.toBeInTheDocument();
+    });
+
+    it('opens and closes from the toggle', async () => {
+      render(Page, { props: pageProps });
+
+      await openDetails();
+      const toggle = screen.getByRole('button', { name: 'Yosemite', expanded: true });
+      expect(screen.getByRole('button', { name: 'Pin photo' })).toBeInTheDocument();
+
+      await fireEvent.click(toggle);
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('button', { name: 'Pin photo' })).not.toBeInTheDocument();
+    });
+
+    it('closes on Escape and returns focus to the toggle', async () => {
+      render(Page, { props: pageProps });
+
+      await openDetails();
+      await fireEvent.keyDown(window, { key: 'Escape' });
+
+      const toggle = screen.getByRole('button', { name: 'Yosemite' });
+      expect(toggle).toHaveAttribute('aria-expanded', 'false');
+      expect(toggle).toHaveFocus();
+    });
+
+    it('labels the toggle "Photo details" when the location is hidden', async () => {
+      localStorageMock.setItem(
+        'hmpg:user-settings',
+        JSON.stringify({ ...defaultUserSettings, showLocation: false }),
+      );
+      render(Page, { props: pageProps });
+
+      await openDetails('Photo details');
+      expect(screen.getByRole('button', { name: 'Pin photo' })).toBeInTheDocument();
+      expect(screen.queryByText('Yosemite')).not.toBeInTheDocument();
+    });
   });
 
   describe('pin and favorite', () => {
@@ -94,6 +149,7 @@ describe('+page.svelte', () => {
 
     it('pins the photo and saves it to local storage', async () => {
       render(Page, { props: pageProps });
+      await openDetails();
 
       await fireEvent.click(screen.getByRole('button', { name: 'Pin photo' }));
 
@@ -109,6 +165,7 @@ describe('+page.svelte', () => {
 
     it('favorites the photo and saves it to local storage', async () => {
       render(Page, { props: pageProps });
+      await openDetails();
 
       await fireEvent.click(screen.getByRole('button', { name: 'Add photo to favorites' }));
 
@@ -122,10 +179,11 @@ describe('+page.svelte', () => {
       expect(JSON.parse(storage.get('hmpg:photo-picks') ?? '{}').favorites).toEqual([]);
     });
 
-    it('shows the pinned photo on load, even when the server sent another one', () => {
+    it('shows the pinned photo on load, even when the server sent another one', async () => {
       storage.set('hmpg:photo-picks', JSON.stringify({ pinned: other, favorites: [] }));
 
       const { container } = render(Page, { props: pageProps });
+      await openDetails();
 
       expect(backgroundUrl(container)).toBe('url(https://example.com/other.jpg)');
       expect(screen.getByRole('button', { name: 'Unpin photo' })).toBeInTheDocument();
@@ -177,8 +235,9 @@ describe('+page.svelte', () => {
     expect(screen.getByText('Monday, January 1')).toBeInTheDocument();
   });
 
-  it('renders the photo coordinates next to the location', () => {
+  it('renders the photo coordinates next to the location', async () => {
     render(Page, { props: pageProps });
+    await openDetails();
 
     expect(screen.getByText('37.865° N, 119.538° W')).toBeInTheDocument();
   });
@@ -205,8 +264,9 @@ describe('+page.svelte', () => {
 
   it('opens Google Maps over HTTPS when the location button is clicked', async () => {
     render(Page, { props: pageProps });
+    await openDetails();
 
-    await screen.getByRole('button', { name: /Yosemite/i }).click();
+    await screen.getByRole('button', { name: /119\.538° W/ }).click();
 
     expect(open).toHaveBeenCalledWith(
       'https://www.google.com/maps/search/?api=1&query=37.8651,-119.5383',
@@ -253,6 +313,7 @@ describe('+page.svelte', () => {
 
   it('opens Instagram when the Instagram button is clicked', async () => {
     render(Page, { props: pageProps });
+    await openDetails();
 
     await screen.getByRole('button', { name: 'Instagram @janedoe' }).click();
 
@@ -419,6 +480,7 @@ describe('+page.svelte', () => {
       expect(screen.getByText('Partly cloudy')).toBeInTheDocument();
       expect(screen.getByText('Where you are')).toBeInTheDocument();
 
+      await openDetails();
       const there = container.querySelector('.place .there');
       expect(there?.textContent).toMatch(/6°\s+Clear sky/);
       // The user's weather comes first in the page and sits outside the location button.
@@ -476,6 +538,7 @@ describe('+page.svelte', () => {
 
       expect(await screen.findByText(/Location is blocked/)).toBeInTheDocument();
       // The photo weather still shows.
+      await openDetails();
       expect(await screen.findByText(/Clear sky/)).toBeInTheDocument();
 
       await fireEvent.click(screen.getByRole('button', { name: 'Choose a city' }));
@@ -495,8 +558,9 @@ describe('+page.svelte', () => {
       render(Page, { props: pageProps });
 
       expect(await screen.findByText(/Weather is unavailable/)).toBeInTheDocument();
+      await openDetails();
       expect(await screen.findByText(/Clear sky/)).toBeInTheDocument();
-      expect(screen.getByText('Yosemite')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Yosemite' })).toBeInTheDocument();
       expect(clock()).toBe('3:0507pm');
     });
 
