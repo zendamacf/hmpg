@@ -60,6 +60,8 @@ const coordinates = $derived(photo ? formatCoordinates(photo.latitude, photo.lon
 
 let settings = $state<UserSettings>(defaultUserSettings);
 let showSettings = $state(false);
+let showDetails = $state(false);
+let detailsButton = $state<HTMLButtonElement>();
 let mounted = $state(false);
 let loaded = $state(false);
 let timezoneDraft = $state('');
@@ -271,8 +273,14 @@ const closeSettings = (returnFocus: boolean) => {
 };
 
 const onKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && showSettings) {
+  if (event.key !== 'Escape') {
+    return;
+  }
+  if (showSettings) {
     closeSettings(true);
+  } else if (showDetails) {
+    showDetails = false;
+    detailsButton?.focus();
   }
 };
 
@@ -413,12 +421,6 @@ onMount(() => {
         {/if}
       </div>
     {/if}
-    {#if settings.showQuote}
-      <figure class="quote">
-        <blockquote>{quote.text}</blockquote>
-        <figcaption>{quote.author}</figcaption>
-      </figure>
-    {/if}
     {#if !photo}
       <p class="empty-message">No background photo is available right now.</p>
       <button
@@ -434,37 +436,60 @@ onMount(() => {
     {/if}
   </section>
 
-  <footer class="caption">
-    {#if photo && settings.showLocation && (photo.location || coordinates)}
-      <button
-        class="place"
-        onclick={() => {
-          trackEvent('outbound-link', { target: 'maps' });
-          window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener');
-        }}
-      >
-        <Icon name="map-marker" />
-        <span class="place-text">
-          {#if photo.location}
-            <span class="name">{photo.location}</span>
-          {/if}
-          {#if coordinates}
-            <span class="coords">{coordinates}</span>
-          {/if}
-          {#if settings.showWeather && photoWeather.status === 'ready'}
-            {@const condition = describeWeather(photoWeather.weather.code, photoWeather.weather.isDay)}
-            <span class="there">
-              <Icon name={condition.icon} />
-              {formatTemperature(photoWeather.weather.temperatureC, unit)}
-              {condition.label}
-            </span>
-          {/if}
-        </span>
-      </button>
-    {/if}
+  {#if settings.showQuote}
+    <figure class="quote">
+      <blockquote>{quote.text}</blockquote>
+      <figcaption>{quote.author}</figcaption>
+    </figure>
+  {/if}
 
-    <div class="trailing">
-      {#if photo}
+  <footer class="caption">
+    {#if photo && showDetails}
+      <div class="details" id="photo-details">
+        {#if settings.showLocation && (photo.location || coordinates)}
+          <button
+            class="place"
+            onclick={() => {
+              trackEvent('outbound-link', { target: 'maps' });
+              window.open(mapsUrl(photo.latitude, photo.longitude), '_blank', 'noopener');
+            }}
+          >
+            <Icon name="map-marker" />
+            <span class="place-text">
+              {#if photo.location}
+                <span class="name">{photo.location}</span>
+              {/if}
+              {#if coordinates}
+                <span class="coords">{coordinates}</span>
+              {/if}
+              {#if settings.showWeather && photoWeather.status === 'ready'}
+                {@const condition = describeWeather(photoWeather.weather.code, photoWeather.weather.isDay)}
+                <span class="there">
+                  <Icon name={condition.icon} />
+                  {formatTemperature(photoWeather.weather.temperatureC, unit)}
+                  {condition.label}
+                </span>
+              {/if}
+            </span>
+          </button>
+        {/if}
+        {#if settings.showAttribution && photo.author_instagram}
+          <button
+            class="link"
+            onclick={() => {
+              trackEvent('outbound-link', { target: 'instagram' });
+              window.open(
+                instagramUrl(photo.author_instagram ?? ''),
+                '_blank',
+                'noopener,noreferrer',
+              );
+            }}
+            aria-label="Instagram @{photo.author_instagram}"
+          >
+            <Icon name="instagram" />
+            <span class="name">@{photo.author_instagram}</span>
+          </button>
+        {/if}
         <div class="picks">
           <button
             class="icon-btn pick pin"
@@ -489,55 +514,63 @@ onMount(() => {
             <Icon name={favorite ? 'heart' : 'heart-outline'} />
           </button>
         </div>
-      {/if}
-      {#if photo && settings.showAttribution}
-        <span class="link credit">
-          <Icon name="camera" />
-          <span class="name">
-            Taken by
-            {#if photo.author_username}
-              <button
-                class="inline"
-                onclick={() => {
-                  trackEvent('outbound-link', { target: 'unsplash-author' });
-                  window.open(unsplashAuthorUrl(photo.author_username), '_blank', 'noopener');
-                }}
-              >
-                {photo.author_name}
-              </button>
-            {:else}
-              {photo.author_name}
-            {/if}
-            on
+      </div>
+    {/if}
+
+    {#if photo && settings.showAttribution}
+      <span class="credit">
+        <Icon name="camera" />
+        <span class="name">
+          Taken by
+          {#if photo.author_username}
             <button
               class="inline"
               onclick={() => {
-                trackEvent('outbound-link', { target: 'unsplash' });
-                window.open(unsplashPhotoUrl(photo.unsplash_id), '_blank', 'noopener');
+                trackEvent('outbound-link', { target: 'unsplash-author' });
+                window.open(unsplashAuthorUrl(photo.author_username), '_blank', 'noopener');
               }}
             >
-              Unsplash
+              {photo.author_name}
             </button>
-          </span>
-        </span>
-
-        {#if photo.author_instagram}
+          {:else}
+            {photo.author_name}
+          {/if}
+          on
           <button
-            class="link"
+            class="inline"
             onclick={() => {
-              trackEvent('outbound-link', { target: 'instagram' });
-              window.open(
-                instagramUrl(photo.author_instagram ?? ''),
-                '_blank',
-                'noopener,noreferrer',
-              );
+              trackEvent('outbound-link', { target: 'unsplash' });
+              window.open(unsplashPhotoUrl(photo.unsplash_id), '_blank', 'noopener');
             }}
-            aria-label="Instagram @{photo.author_instagram}"
           >
-            <Icon name="instagram" />
-            <span class="name">@{photo.author_instagram}</span>
+            Unsplash
           </button>
-        {/if}
+        </span>
+      </span>
+    {/if}
+
+    <div class="bar">
+      {#if photo}
+        <button
+          class="details-toggle"
+          type="button"
+          bind:this={detailsButton}
+          aria-expanded={showDetails}
+          aria-controls="photo-details"
+          onclick={() => {
+            showDetails = !showDetails;
+            trackEvent('details-toggle', { open: showDetails });
+          }}
+        >
+          {#if settings.showLocation && photo.location}
+            <Icon name="map-marker" />
+            <span class="chip-label">{photo.location}</span>
+          {:else}
+            <Icon name="camera" />
+            <span class="chip-label">Photo details</span>
+          {/if}
+          <Icon name="chevron-up" class="icon chevron" />
+        </button>
       {/if}
 
       <div class="controls" bind:this={controlsEl}>
@@ -917,7 +950,8 @@ onMount(() => {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
     padding: clamp(1.25rem, 3vw, 2.5rem);
     opacity: 0;
 
@@ -927,7 +961,8 @@ onMount(() => {
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .stage.ready .clock-block {
+    .stage.ready .clock-block,
+    .stage.ready .quote {
       animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both;
     }
     .stage.ready .caption {
@@ -949,10 +984,6 @@ onMount(() => {
   }
 
   /* Clock ------------------------------------------------------------ */
-
-  .clock-block {
-    margin-bottom: clamp(1rem, 4vh, 2.25rem);
-  }
 
   .greeting {
     margin: 0 0 0.05em 0.14em;
@@ -1073,7 +1104,7 @@ onMount(() => {
   }
 
   .quote {
-    margin: clamp(0.9rem, 2.6vh, 1.6rem) 0 0 0.2em;
+    margin: 0 0 0 0.2em;
     max-width: min(36ch, 100%);
     font-size: clamp(1.05rem, 1.9vw, 1.45rem);
     line-height: 1.4;
@@ -1115,21 +1146,43 @@ onMount(() => {
 
   /* Caption row ------------------------------------------------------ */
 
+  /* Collapsed: the credit line and a bar with the details toggle and controls.
+     Open: a card with the location, Instagram and pin/favorite floats above them,
+     so the clock and quote do not move. */
   .caption {
+    position: relative;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 0.75rem 1.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
   }
 
-  .trailing {
+  .details {
+    box-sizing: border-box;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-start;
     gap: 0.25rem;
-    margin-left: auto;
+    position: absolute;
+    bottom: calc(100% + 0.6rem);
+    left: 0;
+    z-index: 1;
+    width: min(24rem, 100%);
+    padding: 0.6rem 0.6rem 0.3rem;
+    background: rgb(8 18 26 / 0.5);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    backdrop-filter: blur(18px) saturate(1.2);
+    border: 1px solid rgb(247 245 240 / 0.14);
+    border-radius: 1.25rem;
+    transform-origin: bottom left;
+
+    @media (prefers-reduced-motion: no-preference) {
+      animation: open 0.2s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+
+    button {
+      text-shadow: none;
+    }
   }
 
   .place,
@@ -1137,7 +1190,7 @@ onMount(() => {
     display: inline-flex;
     align-items: center;
     gap: 0.6em;
-    padding: 0.5em 0.8em;
+    padding: 0.5em 0.6em;
     border-radius: 0.75em;
     text-align: left;
 
@@ -1147,23 +1200,26 @@ onMount(() => {
   }
 
   .place {
-    margin-left: -0.8em;
-    padding-left: 0.8em;
-    font-size: 1.05rem;
+    align-items: flex-start;
+
+    :global(.icon) {
+      margin-top: 0.2em;
+      color: var(--mist);
+    }
 
     .place-text {
       display: flex;
       flex-direction: column;
-      gap: 0.1em;
+      gap: 0.15em;
     }
 
     .name {
-      font-size: 1.2em;
-      font-weight: 600;
+      font-size: 1.05rem;
+      font-weight: 500;
     }
 
     .coords {
-      font-size: 0.85em;
+      font-size: 0.85rem;
       font-variant-numeric: tabular-nums;
       color: var(--mist);
     }
@@ -1172,19 +1228,78 @@ onMount(() => {
       display: inline-flex;
       align-items: center;
       gap: 0.45em;
-      margin-top: 0.15em;
-      font-size: 0.9em;
+      font-size: 0.85rem;
       font-variant-numeric: tabular-nums;
+      color: var(--mist);
     }
   }
 
   .link {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--mist);
 
     &:hover {
       color: var(--snow);
     }
+  }
+
+  .credit {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    font-size: 0.85rem;
+    color: var(--mist);
+    text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .details-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55em;
+    min-width: 0;
+    max-width: min(28rem, 100%);
+    min-height: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid rgb(247 245 240 / 0.16);
+    border-radius: 999px;
+    background: rgb(8 18 26 / 0.38);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-shadow: none;
+
+    &:hover {
+      background: rgb(8 18 26 / 0.55);
+    }
+
+    > :global(.icon) {
+      color: var(--mist);
+    }
+
+    :global(.chevron) {
+      font-size: 0.75em;
+      @media (prefers-reduced-motion: no-preference) {
+        transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+      }
+    }
+
+    &[aria-expanded='true'] :global(.chevron) {
+      transform: rotate(180deg);
+    }
+  }
+
+  .chip-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .picks {
@@ -1209,10 +1324,6 @@ onMount(() => {
     transform: rotate(0deg);
   }
 
-  .credit:hover {
-    background: none;
-  }
-
   .inline {
     padding: 0;
     color: inherit;
@@ -1228,7 +1339,7 @@ onMount(() => {
     position: relative;
     display: flex;
     gap: 0.25rem;
-    margin-left: 0.5rem;
+    margin-left: auto;
   }
 
   .icon-btn {
@@ -1532,17 +1643,6 @@ onMount(() => {
     }
     .quote {
       max-width: 100%;
-    }
-    .caption {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .trailing {
-      justify-content: flex-start;
-      margin-left: -0.8em;
-    }
-    .controls {
-      margin-left: auto;
     }
     .panel {
       right: 0;

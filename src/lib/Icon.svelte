@@ -10,12 +10,14 @@ export type IconName =
   | 'pin'
   | 'heart'
   | 'heart-outline'
+  | 'chevron-up'
   | WeatherIconName;
 
 const iconClass: Record<IconName, string> = {
   pin: 'fa-solid fa-thumbtack',
   heart: 'fa-solid fa-heart',
   'heart-outline': 'fa-regular fa-heart',
+  'chevron-up': 'fa-solid fa-chevron-up',
   'map-marker': 'fa-solid fa-location-dot',
   camera: 'fa-solid fa-camera',
   instagram: 'fa-brands fa-instagram',
