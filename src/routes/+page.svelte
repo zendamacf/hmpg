@@ -965,8 +965,10 @@ onMount(() => {
     .stage.ready .quote {
       animation: rise 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.35s both;
     }
+    /* backwards, not both: an animation that stays applied makes the caption a
+       backdrop root, and the details card can then not blur the page behind it. */
     .stage.ready .caption {
-      animation: fade 1s ease 0.9s both;
+      animation: fade 1s ease 0.9s backwards;
     }
   }
 
@@ -1169,9 +1171,9 @@ onMount(() => {
     z-index: 1;
     width: min(24rem, 100%);
     padding: 0.6rem 0.6rem 0.3rem;
-    background: rgb(8 18 26 / 0.5);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-    backdrop-filter: blur(18px) saturate(1.2);
+    background: rgb(8 18 26 / 0.88);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    backdrop-filter: blur(20px) saturate(1.3);
     border: 1px solid rgb(247 245 240 / 0.14);
     border-radius: 1.25rem;
     transform-origin: bottom left;
