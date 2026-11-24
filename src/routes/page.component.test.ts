@@ -58,6 +58,14 @@ describe('+page.svelte', () => {
   };
 
   beforeEach(() => {
+    // jsdom does not implement the dialog methods.
+    HTMLDialogElement.prototype.showModal = function showModal(this: HTMLDialogElement) {
+      this.setAttribute('open', '');
+    };
+    HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
+      this.removeAttribute('open');
+      this.dispatchEvent(new Event('close'));
+    };
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date(2024, 0, 1, 15, 5, 7));
     invalidateAll.mockReset();
@@ -86,22 +94,17 @@ describe('+page.svelte', () => {
     const background = container.querySelector('.background');
     expect(background).toHaveStyle({ '--image-url': 'url(https://example.com/photo.jpg)' });
     expect(screen.getByText('Yosemite')).toBeInTheDocument();
-    expect(screen.getByText(/Taken by/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Jane Doe' })).toBeInTheDocument();
-
-    await openDetails();
-    expect(screen.getByRole('button', { name: 'Instagram @janedoe' })).toBeInTheDocument();
+    expect(screen.queryByText(/Taken by/)).not.toBeInTheDocument();
   });
 
   describe('photo details', () => {
-    it('starts closed and shows the credit without opening', () => {
+    it('starts closed', () => {
       render(Page, { props: pageProps });
 
       expect(screen.getByRole('button', { name: 'Yosemite' })).toHaveAttribute(
         'aria-expanded',
         'false',
       );
-      expect(screen.getByText(/Taken by/)).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: 'Pin photo' })).not.toBeInTheDocument();
       expect(screen.queryByText('37.865° N, 119.538° W')).not.toBeInTheDocument();
     });
@@ -275,53 +278,78 @@ describe('+page.svelte', () => {
     );
   });
 
-  it('opens the Unsplash author profile when the author name is clicked', async () => {
-    render(Page, { props: pageProps });
+  describe('about dialog', () => {
+    const openAbout = () => fireEvent.click(screen.getByRole('button', { name: 'About' }));
 
-    await screen.getByRole('button', { name: 'Jane Doe' }).click();
+    it('is closed until the About button is clicked', () => {
+      render(Page, { props: pageProps });
 
-    expect(open).toHaveBeenCalledWith(
-      'https://unsplash.com/@janedoe_photo?utm_source=hmpg&utm_medium=referral',
-      '_blank',
-      'noopener',
-    );
-  });
-
-  it('shows the author name as plain text when there is no username', () => {
-    render(Page, {
-      props: {
-        ...pageProps,
-        data: { topics: [], photo: { ...photo, author_username: null } },
-      },
+      expect(screen.queryByRole('dialog', { hidden: true })).not.toBeInTheDocument();
     });
 
-    expect(screen.queryByRole('button', { name: 'Jane Doe' })).not.toBeInTheDocument();
-    expect(screen.getByText(/Jane Doe/)).toBeInTheDocument();
-  });
+    it('credits the photographer and Unsplash with referral links', async () => {
+      render(Page, { props: pageProps });
+      await openAbout();
 
-  it('opens the Unsplash photo page when Unsplash is clicked', async () => {
-    render(Page, { props: pageProps });
+      expect(screen.getByRole('link', { name: 'Jane Doe', hidden: true })).toHaveAttribute(
+        'href',
+        'https://unsplash.com/@janedoe_photo?utm_source=hmpg&utm_medium=referral',
+      );
+      expect(screen.getByRole('link', { name: 'Unsplash', hidden: true })).toHaveAttribute(
+        'href',
+        'https://unsplash.com/photos/photo-1?utm_source=hmpg&utm_medium=referral',
+      );
+    });
 
-    await screen.getByRole('button', { name: 'Unsplash' }).click();
+    it('links the photographer Instagram account', async () => {
+      render(Page, { props: pageProps });
+      await openAbout();
 
-    expect(open).toHaveBeenCalledWith(
-      'https://unsplash.com/photos/photo-1?utm_source=hmpg&utm_medium=referral',
-      '_blank',
-      'noopener',
-    );
-  });
+      expect(
+        screen.getByRole('link', { name: 'Instagram @janedoe', hidden: true }),
+      ).toHaveAttribute('href', 'https://instagram.com/janedoe');
+    });
 
-  it('opens Instagram when the Instagram button is clicked', async () => {
-    render(Page, { props: pageProps });
-    await openDetails();
+    it('shows the author name as plain text when there is no username', async () => {
+      render(Page, {
+        props: {
+          ...pageProps,
+          data: { topics: [], photo: { ...photo, author_username: null } },
+        },
+      });
+      await openAbout();
 
-    await screen.getByRole('button', { name: 'Instagram @janedoe' }).click();
+      expect(
+        screen.queryByRole('link', { name: 'Jane Doe', hidden: true }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText(/Jane Doe/, { ignore: 'title' })).toBeInTheDocument();
+    });
 
-    expect(open).toHaveBeenCalledWith(
-      'https://instagram.com/janedoe',
-      '_blank',
-      'noopener,noreferrer',
-    );
+    it('credits Open-Meteo under CC BY 4.0', async () => {
+      render(Page, { props: pageProps });
+      await openAbout();
+
+      expect(screen.getByRole('link', { name: 'Open-Meteo.com', hidden: true })).toHaveAttribute(
+        'href',
+        'https://open-meteo.com/',
+      );
+      expect(screen.getByRole('link', { name: 'CC BY 4.0', hidden: true })).toHaveAttribute(
+        'href',
+        'https://creativecommons.org/licenses/by/4.0/',
+      );
+    });
+
+    it('closes and returns focus to the About button', async () => {
+      render(Page, { props: pageProps });
+      await openAbout();
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Close', hidden: true }));
+
+      expect(
+        screen.queryByRole('link', { name: 'Unsplash', hidden: true }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'About' })).toHaveFocus();
+    });
   });
 
   it('opens the GitHub repo when the credit button is clicked', async () => {
@@ -338,7 +366,6 @@ describe('+page.svelte', () => {
       JSON.stringify({
         ...defaultUserSettings,
         hour12: false,
-        showAttribution: false,
         showLocation: false,
       }),
     );
@@ -347,7 +374,6 @@ describe('+page.svelte', () => {
 
     expect(clock()).toBe('15:0507');
     expect(screen.queryByText('Yosemite')).not.toBeInTheDocument();
-    expect(screen.queryByText(/Taken by/)).not.toBeInTheDocument();
   });
 
   it('shows the greeting and daily quote by default', () => {

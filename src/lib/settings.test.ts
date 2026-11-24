@@ -37,7 +37,6 @@ describe('parseUserSettings', () => {
         JSON.stringify({
           hour12: 'yes',
           timezone: 42,
-          showAttribution: 'on',
           showGreeting: 'yes',
           showQuote: 1,
           showWeather: 'yes',

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { onMount, tick, untrack } from 'svelte';
+import About from '#lib/About.svelte';
 import { formatCoordinates } from '#lib/coordinates.js';
 import { greetingFor } from '#lib/greeting.js';
 import Icon from '#lib/Icon.svelte';
@@ -61,6 +62,8 @@ const coordinates = $derived(photo ? formatCoordinates(photo.latitude, photo.lon
 let settings = $state<UserSettings>(defaultUserSettings);
 let showSettings = $state(false);
 let showDetails = $state(false);
+let showAbout = $state(false);
+let aboutButton = $state<HTMLButtonElement>();
 let detailsButton = $state<HTMLButtonElement>();
 let mounted = $state(false);
 let loaded = $state(false);
@@ -76,18 +79,6 @@ const mapsUrl = (latitude: string | null, longitude: string | null) => {
   }
   return `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 };
-
-const instagramUrl = (username: string) => `https://instagram.com/${username}`;
-
-const unsplashAuthorUrl = (username: string | null) =>
-  username
-    ? `https://unsplash.com/@${username}?utm_source=hmpg&utm_medium=referral`
-    : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
-
-const unsplashPhotoUrl = (unsplashId: string | null) =>
-  unsplashId
-    ? `https://unsplash.com/photos/${unsplashId}?utm_source=hmpg&utm_medium=referral`
-    : 'https://unsplash.com/?utm_source=hmpg&utm_medium=referral';
 
 let userWeather = $state<WeatherState>({ status: 'idle' });
 let photoWeather = $state<WeatherState>({ status: 'idle' });
@@ -473,23 +464,6 @@ onMount(() => {
             </span>
           </button>
         {/if}
-        {#if settings.showAttribution && photo.author_instagram}
-          <button
-            class="link"
-            onclick={() => {
-              trackEvent('outbound-link', { target: 'instagram' });
-              window.open(
-                instagramUrl(photo.author_instagram ?? ''),
-                '_blank',
-                'noopener,noreferrer',
-              );
-            }}
-            aria-label="Instagram @{photo.author_instagram}"
-          >
-            <Icon name="instagram" />
-            <span class="name">@{photo.author_instagram}</span>
-          </button>
-        {/if}
         <div class="picks">
           <button
             class="icon-btn pick pin"
@@ -515,38 +489,6 @@ onMount(() => {
           </button>
         </div>
       </div>
-    {/if}
-
-    {#if photo && settings.showAttribution}
-      <span class="credit">
-        <Icon name="camera" />
-        <span class="name">
-          Taken by
-          {#if photo.author_username}
-            <button
-              class="inline"
-              onclick={() => {
-                trackEvent('outbound-link', { target: 'unsplash-author' });
-                window.open(unsplashAuthorUrl(photo.author_username), '_blank', 'noopener');
-              }}
-            >
-              {photo.author_name}
-            </button>
-          {:else}
-            {photo.author_name}
-          {/if}
-          on
-          <button
-            class="inline"
-            onclick={() => {
-              trackEvent('outbound-link', { target: 'unsplash' });
-              window.open(unsplashPhotoUrl(photo.unsplash_id), '_blank', 'noopener');
-            }}
-          >
-            Unsplash
-          </button>
-        </span>
-      </span>
     {/if}
 
     <div class="bar">
@@ -669,20 +611,6 @@ onMount(() => {
                   const showLocation = (event.currentTarget as HTMLInputElement).checked;
                   trackEvent('setting-change', { key: 'showLocation', value: showLocation });
                   updateSettings({ showLocation });
-                }}
-              />
-            </label>
-            <label class="row">
-              <span>Show photo credit</span>
-              <input
-                class="switch"
-                type="checkbox"
-                role="switch"
-                checked={settings.showAttribution}
-                onchange={(event) => {
-                  const showAttribution = (event.currentTarget as HTMLInputElement).checked;
-                  trackEvent('setting-change', { key: 'showAttribution', value: showAttribution });
-                  updateSettings({ showAttribution });
                 }}
               />
             </label>
@@ -815,6 +743,19 @@ onMount(() => {
 
         <button
           class="icon-btn"
+          bind:this={aboutButton}
+          onclick={() => {
+            showAbout = true;
+            trackEvent('about-open');
+          }}
+          aria-haspopup="dialog"
+          aria-label="About"
+        >
+          <Icon name="info" />
+        </button>
+
+        <button
+          class="icon-btn"
           onclick={() => {
             trackEvent('outbound-link', { target: 'github' });
             window.open('https://github.com/zendamacf/hmpg', '_blank');
@@ -827,6 +768,16 @@ onMount(() => {
     </div>
   </footer>
 </main>
+
+{#if showAbout}
+  <About
+    {photo}
+    onclose={() => {
+      showAbout = false;
+      aboutButton?.focus();
+    }}
+  />
+{/if}
 
 <style>
   :global(:root) {
@@ -1187,8 +1138,7 @@ onMount(() => {
     }
   }
 
-  .place,
-  .link {
+  .place {
     display: inline-flex;
     align-items: center;
     gap: 0.6em;
@@ -1234,24 +1184,6 @@ onMount(() => {
       font-variant-numeric: tabular-nums;
       color: var(--mist);
     }
-  }
-
-  .link {
-    font-size: 0.9rem;
-    color: var(--mist);
-
-    &:hover {
-      color: var(--snow);
-    }
-  }
-
-  .credit {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55em;
-    font-size: 0.85rem;
-    color: var(--mist);
-    text-shadow: 0 1px 14px rgb(0 0 0 / 0.5);
   }
 
   .bar {
@@ -1324,17 +1256,6 @@ onMount(() => {
 
   .pin.on :global(.icon) {
     transform: rotate(0deg);
-  }
-
-  .inline {
-    padding: 0;
-    color: inherit;
-    text-decoration: underline;
-    text-underline-offset: 0.2em;
-
-    &:hover {
-      color: var(--snow);
-    }
   }
 
   .controls {

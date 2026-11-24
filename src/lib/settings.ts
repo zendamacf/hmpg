@@ -4,7 +4,6 @@ import type { City, TemperatureUnit } from './weather';
 export type UserSettings = {
   hour12: boolean;
   timezone: string | null;
-  showAttribution: boolean;
   showLocation: boolean;
   showGreeting: boolean;
   showQuote: boolean;
@@ -20,7 +19,6 @@ export type UserSettings = {
 export const defaultUserSettings: UserSettings = {
   hour12: true,
   timezone: null,
-  showAttribution: true,
   showLocation: true,
   showGreeting: true,
   showQuote: true,
@@ -63,10 +61,6 @@ export const parseUserSettings = (raw: string | null): UserSettings => {
         parsed.timezone === null || typeof parsed.timezone === 'string'
           ? parsed.timezone
           : defaultUserSettings.timezone,
-      showAttribution:
-        typeof parsed.showAttribution === 'boolean'
-          ? parsed.showAttribution
-          : defaultUserSettings.showAttribution,
       showLocation:
         typeof parsed.showLocation === 'boolean'
           ? parsed.showLocation

@@ -6,6 +6,7 @@ export type IconName =
   | 'camera'
   | 'instagram'
   | 'cog'
+  | 'info'
   | 'github'
   | 'pin'
   | 'heart'
@@ -22,6 +23,7 @@ const iconClass: Record<IconName, string> = {
   camera: 'fa-solid fa-camera',
   instagram: 'fa-brands fa-instagram',
   cog: 'fa-solid fa-gear',
+  info: 'fa-solid fa-circle-info',
   github: 'fa-brands fa-github',
   sun: 'fa-solid fa-sun',
   moon: 'fa-solid fa-moon',
