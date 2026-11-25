@@ -1,12 +1,12 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_USER: hmpg
       POSTGRES_PASSWORD: ${DB_PASSWORD:-hmpg}
       POSTGRES_DB: hmpg
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U hmpg -d hmpg']
       interval: 5s
