@@ -1,5 +1,11 @@
 # hmpg
 
+## 1.3.0
+
+### Minor Changes
+
+- 3d816c4: Add an About dialog. It shows the photo credit (Unsplash) and the weather credit (Open-Meteo). Remove the setting that hid the photo credit.
+
 ## 1.2.0
 
 ### Minor Changes
